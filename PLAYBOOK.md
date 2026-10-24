@@ -6,6 +6,9 @@ Our step-by-step plan for hackathon day. Adapted from a winning workflow, cut do
 
 - [ ] Read the rules: is pre-written code allowed? Theme / tracks? What to submit (repo, video, slides)? Deadline?
 - [ ] Both: clone the repo and run `setup.ps1` (see README)
+- [ ] Both: install the hackathon skills plugin ([23jmo/jmo-skills](https://github.com/23jmo/jmo-skills)), one line at a time, then restart Claude:
+  - `claude plugin marketplace add 23jmo/jmo-skills`
+  - `claude plugin install jmo-workflow@jmo-skills`
 - [ ] Practice one `git pull` / `git push` round together
 - [ ] Ask the organizers how API keys / credits are given out, and if we must sign up anywhere first
 - [ ] Sign in to [Streamlit Community Cloud](https://share.streamlit.io) with GitHub (for deploying the demo)
@@ -19,13 +22,15 @@ Our step-by-step plan for hackathon day. Adapted from a winning workflow, cut do
 - Check it fits the theme / track and the judging criteria.
 
 ### 2. Plan before coding (~1–2 hours)
-- Run `/interview <idea>` in Claude Code. Answer its questions until the plan is clear.
-- Result: `MASTER_PLAN.md` with the demo script, feature list, cut list and two task tracks.
+- Run `/jmo-workflow:interview <idea>` in Claude Code. Answer its questions until the plan is clear.
+  Add to the prompt: "Include a demo script under 3 minutes, a must-have list, a cut list, and split the work into two independent tracks (UI / AI logic) that don't edit the same files."
+- Result: a spec in `.plans/<name>-spec.md`. Commit it so both of us have it.
 - Fill in the Ownership section in `CLAUDE.md`.
 - Put the API key in `.env` and run `python test_api.py`.
 
 ### 3. Build in parallel (most of the time)
-- Each person takes one track from `MASTER_PLAN.md` and works with their own Claude.
+- Each person takes one track from the spec in `.plans/` and works with their own Claude.
+- If Claude's explanation is confusing, run `/jmo-workflow:ste` to get it in plain words.
 - Give Claude a reference screenshot for UI work. AI copies a good design far better than it invents one.
 - Tell Claude which files it may touch ("only edit app.py").
 - Pull before starting, push after each working feature.
@@ -50,4 +55,4 @@ Our step-by-step plan for hackathon day. Adapted from a winning workflow, cut do
 ## Tools we decided to skip
 - Superset (no Windows support — Claude Desktop already runs parallel sessions)
 - Codex, Supabase / Neon / Stripe MCPs (only add if the idea needs a database or payments)
-- Animation skills (made for React, not Streamlit)
+- `/jmo-workflow:animate`, `/jmo-workflow:agentation` (made for React / Next.js, not Streamlit)
