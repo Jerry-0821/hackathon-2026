@@ -14,15 +14,12 @@ Python + Streamlit + Claude API
 ## 第一次设置（每个人在自己电脑做一次）
 
 ```powershell
-git clone <repo 链接>
-cd hackathon
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-copy .env.example .env
+git clone https://github.com/Jerry-0821/hackathon-2026.git
+cd hackathon-2026
+powershell -ExecutionPolicy Bypass -File setup.ps1
 ```
 
-然后打开 `.env`，填入 API key。
+`setup.ps1` 会自动建虚拟环境、装依赖、建 `.env`。然后打开 `.env`，填入 API key。
 
 > 如果 `Activate.ps1` 报错 "running scripts is disabled"，先运行：
 > `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
