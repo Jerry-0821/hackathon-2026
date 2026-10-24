@@ -5,26 +5,26 @@ import ai
 
 st.set_page_config(page_title="Hackathon Demo", page_icon="🚀")
 st.title("🚀 Hackathon Demo")
-st.caption("改 ai.py 里的 SYSTEM_PROMPT，就能把它变成你们的点子")
+st.caption("Change SYSTEM_PROMPT in ai.py to turn this into your idea")
 
 if not ai.has_api_key():
-    st.error("找不到 API key：把 .env.example 复制成 .env，填入你的 key，然后重新运行。")
+    st.error("No API key found: copy .env.example to .env, put your key in it, then restart.")
     st.stop()
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 with st.sidebar:
-    if st.button("清空对话"):
+    if st.button("Clear chat"):
         st.session_state.messages = []
         st.rerun()
 
-# 显示之前的对话
+# Show the conversation so far
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-if prompt := st.chat_input("输入你的问题..."):
+if prompt := st.chat_input("Ask something..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -33,16 +33,16 @@ if prompt := st.chat_input("输入你的问题..."):
         try:
             reply = st.write_stream(ai.stream_reply(st.session_state.messages))
         except anthropic.AuthenticationError:
-            st.error("API key 无效，检查一下 .env。")
+            st.error("Invalid API key. Check your .env file.")
             st.stop()
         except anthropic.RateLimitError:
-            st.error("请求太频繁或额度用完了，等一下再试。")
+            st.error("Too many requests or out of credits. Wait a bit and try again.")
             st.stop()
         except anthropic.APIConnectionError:
-            st.error("连不上 Claude，检查网络。")
+            st.error("Can't reach Claude. Check your internet connection.")
             st.stop()
         except anthropic.APIStatusError as e:
-            st.error(f"API 出错：{e.message}")
+            st.error(f"API error: {e.message}")
             st.stop()
 
     st.session_state.messages.append({"role": "assistant", "content": reply})
