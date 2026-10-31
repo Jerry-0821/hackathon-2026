@@ -1,6 +1,8 @@
 """Second page: parallel proposals + mediator (orchestrator_balanced.py).
-Streamlit lists it in the sidebar next to the original app.py page.
+Listed in the app.py page router.
 Design: .plans/balanced-negotiation-design.md"""
+
+from __future__ import annotations
 
 import streamlit.components.v1 as components
 import streamlit as st
@@ -10,7 +12,6 @@ import orchestrator_balanced
 import rules
 import scenario
 
-st.set_page_config(page_title="Balanced negotiation", layout="wide")
 st.title("Multi-Agent ATC Negotiation — parallel proposals + mediator")
 st.caption(
     "Each agent only sees its own organisation's data. All three propose at the same time and publish "

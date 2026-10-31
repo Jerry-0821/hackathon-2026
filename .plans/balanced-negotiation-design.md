@@ -73,4 +73,4 @@ The page has a "simulate low fuel" checkbox that only lowers the reserve; the sy
 - `rules.py` – tiers, emergency trigger and relaxations
 - `scoring.py` – "true" satisfaction from the hidden data; **only used to evaluate outcomes**
   (`compare.py`), not by the mediator
-- `pages/2_Balanced_negotiation.py`, `compare.py`, tests
+- `views/balanced_negotiation.py`, `compare.py`, tests
