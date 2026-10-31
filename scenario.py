@@ -6,10 +6,17 @@ deterministically from the real fields below so each scenario is reproducible, n
 
 from __future__ import annotations
 
+import re
+
+_HHMM_RE = re.compile(r"^([01]\d|2[0-3]):([0-5]\d)$")
+
 
 def _minutes_since_midnight(hhmm: str) -> int:
-    digits = hhmm.replace(":", "")
-    return int(digits[:2]) * 60 + int(digits[2:])
+    """Parse strict 24h "HH:MM". Raises ValueError on anything else (e.g. "9:05", "10:38 AM")."""
+    match = _HHMM_RE.match(str(hhmm).strip())
+    if not match:
+        raise ValueError(f"time {hhmm!r} is not in 24h HH:MM format")
+    return int(match.group(1)) * 60 + int(match.group(2))
 
 
 def _hhmm(minutes: int) -> str:

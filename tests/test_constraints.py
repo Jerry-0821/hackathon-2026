@@ -67,3 +67,25 @@ def test_large_delay_breaks_both_fuel_and_crew_overtime():
     joined = "; ".join(violations)
     assert "fuel_reserve" in joined
     assert "crew_overtime" in joined
+
+
+def test_unknown_gate_is_a_violation():
+    state = _state()
+    # +3min passes every other rule on D12 (see test_valid_proposal_passes_clean).
+    proposal = {
+        "revised_arrival_time": scenario.hhmm(state["naive_arrival_minutes"] + 3),
+        "gate_assignment": "Z99",
+    }
+    ok, violations = constraints.check(proposal, state)
+    assert ok is False
+    assert len(violations) == 1
+    assert "unknown_gate" in violations[0]
+
+
+def test_time_parser_rejects_bad_formats():
+    import pytest
+
+    assert scenario.minutes_since_midnight("10:38") == 638
+    for bad in ["9:05", "10:38 AM", "1038", "24:00", "10:60", ""]:
+        with pytest.raises(ValueError):
+            scenario.minutes_since_midnight(bad)

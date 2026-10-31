@@ -6,6 +6,8 @@ the full JSON consensus log (every message, every constraint check, every mediat
 verdict) and writes it to disk at the end.
 """
 
+from __future__ import annotations
+
 import json
 from datetime import datetime, timezone
 
@@ -17,6 +19,19 @@ import scenario
 
 ROLE_ORDER = ["atc", "pilot", "ground"]
 MAX_TURNS = 3
+
+
+def _counter_problem(counter) -> str | None:
+    """Return why a counter_proposal is unusable, or None if it is well-formed."""
+    if not isinstance(counter, dict):
+        return "no counter_proposal supplied"
+    if not counter.get("revised_arrival_time") or not counter.get("gate_assignment"):
+        return "missing revised_arrival_time or gate_assignment"
+    try:
+        scenario.minutes_since_midnight(str(counter["revised_arrival_time"]))
+    except ValueError as e:
+        return str(e)
+    return None
 
 
 def run(scenario_id: str = scenario.DEFAULT_SCENARIO):
@@ -42,6 +57,7 @@ def run(scenario_id: str = scenario.DEFAULT_SCENARIO):
     yield {"type": "scenario", "state": log["scenario"], "initial_proposal": current_proposal}
 
     turn_history = []
+    vote_history = []  # every vote so far, shown to later agents so they can respond to objections
     outcome = None
 
     for turn in range(1, MAX_TURNS + 1):
@@ -62,7 +78,9 @@ def run(scenario_id: str = scenario.DEFAULT_SCENARIO):
             yield validation_event
 
             try:
-                response = agents.call_agent(role, state, current_proposal, constraint_result, turn)
+                response = agents.call_agent(
+                    role, state, current_proposal, constraint_result, turn, history=list(vote_history)
+                )
             except agents.AgentCallError as e:
                 log["outcome"] = {"status": "error", "message": str(e), "turn": turn, "role": role}
                 with open("consensus_log.json", "w") as f:
@@ -71,19 +89,46 @@ def run(scenario_id: str = scenario.DEFAULT_SCENARIO):
                 yield {"type": "done", "log": log}
                 return
 
+            # Process a COUNTER before yielding, so the UI and log show the final vote.
+            if response["vote"] == "COUNTER":
+                counter = response.get("counter_proposal")
+                problem = _counter_problem(counter)
+                if problem:
+                    # Unusable COUNTER - treat as REJECT, keep baseline.
+                    response["vote"] = "REJECT"
+                    response["rationale"] += f" [counter_proposal not usable ({problem}) - treated as REJECT]"
+                else:
+                    counter = {
+                        "revised_arrival_time": str(counter["revised_arrival_time"]).strip(),
+                        "gate_assignment": str(counter["gate_assignment"]).strip(),
+                    }
+                    response["counter_proposal"] = counter
+                    counter_ok, counter_violations = constraints.check(counter, state)
+                    response["counter_constraint_check"] = {
+                        "passed": counter_ok,
+                        "violations": counter_violations,
+                    }
+                    if counter_ok:
+                        current_proposal = counter
+                    else:
+                        # Only constraint-valid counters become the new baseline.
+                        response["rationale"] += " [counter_proposal failed the constraint check - not adopted]"
+
+            vote_history.append(
+                {
+                    "turn": turn,
+                    "from": role,
+                    "vote": response["vote"],
+                    "rationale": response.get("rationale", ""),
+                    "counter_proposal": response.get("counter_proposal"),
+                    "counter_constraint_check": response.get("counter_constraint_check"),
+                }
+            )
+
             agent_event = {"type": "agent_response", "turn": turn, "response": response}
             turn_log["events"].append(agent_event)
             turn_log["votes"].append(response)
             yield agent_event
-
-            if response["vote"] == "COUNTER":
-                counter = response.get("counter_proposal")
-                if counter and "revised_arrival_time" in counter and "gate_assignment" in counter:
-                    current_proposal = counter
-                else:
-                    # malformed COUNTER with no usable proposal - treat as REJECT, keep baseline
-                    response["vote"] = "REJECT"
-                    response["rationale"] += " [no usable counter_proposal supplied - treated as REJECT]"
 
         final_ok, final_violations = constraints.check(current_proposal, state)
         mediator_result = mediator.evaluate_turn(turn_log["votes"], final_ok)

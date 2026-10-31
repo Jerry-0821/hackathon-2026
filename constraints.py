@@ -47,7 +47,13 @@ def check(proposal: dict, state: dict) -> tuple[bool, list[str]]:
             f"crew_overtime: {overtime}min overtime exceeds the {max_overtime}min maximum"
         )
 
-    # 4. Gate conflict - is the proposed gate occupied at the proposed arrival time?
+    # 4. Gate must exist in this scenario. An unknown gate has no schedule, so it would
+    #    otherwise look free.
+    if gate not in state["gate_occupancy"]:
+        known = ", ".join(sorted(state["gate_occupancy"]))
+        violations.append(f"unknown_gate: gate {gate} does not exist (known gates: {known})")
+
+    # 5. Gate conflict - is the proposed gate occupied at the proposed arrival time?
     busy_windows = state["gate_occupancy"].get(gate, [])
     turnaround_end = arrival_minutes + 25  # assume a 25min minimum occupancy on arrival
     for start, end in busy_windows:

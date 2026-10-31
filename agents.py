@@ -5,6 +5,8 @@ addressed to it - no shared prompt, no shared memory object. Output is forced in
 a strict JSON shape via tool-use so it's always machine-parseable.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import time
@@ -38,23 +40,22 @@ RESPONSE_TOOL = {
                 "description": "ACCEPT the current proposal as-is, REJECT with no alternative, "
                 "or COUNTER with a replacement proposal.",
             },
-            "counter_proposal": {
-                "type": "object",
-                "description": "Required when vote is COUNTER. Omit otherwise.",
-                "properties": {
-                    "revised_arrival_time": {"type": "string", "description": "HH:MM, 24h"},
-                    "gate_assignment": {"type": "string"},
-                },
-                "required": ["revised_arrival_time", "gate_assignment"],
-            },
-            "rationale": {
+            "counter_arrival_time": {
                 "type": "string",
-                "description": "One or two sentences explaining the vote from your role's objectives.",
+                "description": "Required when vote is COUNTER: your proposed arrival, 24h HH:MM. Omit otherwise.",
+            },
+            "counter_gate": {
+                "type": "string",
+                "description": "Required when vote is COUNTER: your proposed gate, one of known_gates. Omit otherwise.",
             },
             "utility_fields": {
                 "type": "object",
                 "description": "Numeric fields relevant to your role's objectives, your own honest estimate.",
                 "additionalProperties": {"type": "number"},
+            },
+            "rationale": {
+                "type": "string",
+                "description": "One or two plain sentences explaining the vote from your role's objectives.",
             },
         },
         "required": ["vote", "rationale", "utility_fields"],
@@ -90,12 +91,66 @@ SYSTEM_PROMPTS = {
 }
 
 
-def _build_user_message(role: str, state: dict, current_proposal: dict, constraint_result: tuple, turn: int) -> str:
+def _hhmm(minutes: int) -> str:
+    minutes = minutes % (24 * 60)
+    return f"{minutes // 60:02d}:{minutes % 60:02d}"
+
+
+def _role_view(role: str, state: dict) -> dict:
+    """The operational data each role needs for its own objectives. Every role gets the shared
+    rulebook and the list of real gates; each also gets the data its job depends on."""
+    c = state["constraints"]
+    view = {
+        "naive_arrival": state["naive_arrival"],
+        "rulebook": c,
+        "known_gates": sorted(state["gate_occupancy"]),
+        "time_format": "24h HH:MM, e.g. 10:41",
+    }
+    if role == "atc":
+        view["other_scheduled_arrivals"] = [
+            {"flight": a["flight"], "arrival_time": _hhmm(a["arrival_minutes"]), "gate": a["gate"]}
+            for a in state["other_arrivals"]
+        ]
+        view["note"] = (
+            f"Your arrival must be at least {c['min_wake_separation_minutes']} min away from every "
+            "other scheduled arrival."
+        )
+    elif role == "pilot":
+        view["fuel_reserve_minutes_at_naive_arrival"] = state["derived"]["fuel_reserve_minutes_at_naive_arrival"]
+        view["connecting_passengers"] = state["derived"]["connecting_passengers"]
+        view["note"] = (
+            "Every minute of arrival after naive_arrival burns one minute of fuel reserve. "
+            f"Reserve must stay at or above {c['min_fuel_reserve_minutes']} min."
+        )
+    elif role == "ground":
+        view["gate_busy_windows"] = {
+            gate: [f"{_hhmm(start)}-{_hhmm(end)}" for start, end in windows]
+            for gate, windows in state["gate_occupancy"].items()
+        }
+        view["ground_crew_shift_end"] = _hhmm(state["derived"]["ground_crew_shift_end_minutes"])
+        view["current_gate"] = state["derived"]["current_gate"]
+        view["requested_gate"] = state["derived"]["requested_gate"]
+        view["note"] = (
+            "An arriving aircraft occupies its gate for at least 25 min. Crew overtime past shift "
+            f"end must not exceed {c['max_crew_overtime_minutes']} min."
+        )
+    return view
+
+
+def _build_user_message(
+    role: str,
+    state: dict,
+    current_proposal: dict,
+    constraint_result: tuple,
+    turn: int,
+    history: list[dict] | None = None,
+) -> str:
     ok, violations = constraint_result
     payload = {
         "turn": turn,
         "flight": state["flight"],
-        "scenario_derived_fields": state["derived"],
+        "your_operational_data": _role_view(role, state),
+        "negotiation_history": history or [],
         "current_proposal": current_proposal,
         "constraint_check_on_current_proposal": {
             "passed": ok,
@@ -104,7 +159,10 @@ def _build_user_message(role: str, state: dict, current_proposal: dict, constrai
         "instruction": (
             f"As the {role} agent, vote on current_proposal using the submit_response tool. "
             "If constraint_check_on_current_proposal.passed is false, you MUST NOT vote ACCEPT - "
-            "vote COUNTER with a revised proposal, or REJECT."
+            "vote COUNTER with a revised proposal, or REJECT. "
+            "Read negotiation_history: other agents' objections and any counter_constraint_check "
+            "violations tell you what a workable proposal must avoid. Only COUNTER with a proposal "
+            "that you expect to pass every rule in the rulebook."
         ),
     }
     return json.dumps(payload, indent=2)
@@ -116,11 +174,18 @@ class AgentCallError(Exception):
     not guess at a substitute response."""
 
 
-def call_agent(role: str, state: dict, current_proposal: dict, constraint_result: tuple, turn: int) -> dict:
+def call_agent(
+    role: str,
+    state: dict,
+    current_proposal: dict,
+    constraint_result: tuple,
+    turn: int,
+    history: list[dict] | None = None,
+) -> dict:
     """One independent API call. Returns the parsed structured response dict, plus 'from'/'turn'.
     Raises AgentCallError on any API failure or malformed response."""
     client = _get_client()
-    user_message = _build_user_message(role, state, current_proposal, constraint_result, turn)
+    user_message = _build_user_message(role, state, current_proposal, constraint_result, turn, history)
 
     start = time.monotonic()
     try:
@@ -149,6 +214,13 @@ def call_agent(role: str, state: dict, current_proposal: dict, constraint_result
     result = dict(tool_use_block.input)
     if "vote" not in result:
         raise AgentCallError(f"{role}: structured response is missing the required 'vote' field")
+
+    # The tool uses flat counter fields (nested objects made the model leak arguments into
+    # the rationale text). Rebuild the counter_proposal shape the orchestrator expects.
+    arrival = result.pop("counter_arrival_time", None)
+    gate = result.pop("counter_gate", None)
+    if arrival or gate:
+        result["counter_proposal"] = {"revised_arrival_time": arrival, "gate_assignment": gate}
 
     result["from"] = role
     result["turn"] = turn

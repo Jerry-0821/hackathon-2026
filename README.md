@@ -49,6 +49,7 @@ powershell -ExecutionPolicy Bypass -File setup.ps1
 ```powershell
 .venv\Scripts\Activate.ps1
 python test_api.py      # check the key (optional)
+python -m pytest        # offline unit tests, no API calls
 streamlit run app.py    # open the web app
 ```
 
