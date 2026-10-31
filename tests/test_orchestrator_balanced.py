@@ -67,9 +67,9 @@ def test_private_views_do_not_leak_other_domains():
     atc = agents_balanced.private_view("atc", state)
     pilot = agents_balanced.private_view("pilot", state)
     ground = agents_balanced.private_view("ground", state)
-    assert "other_scheduled_arrivals" in atc and "other_scheduled_arrivals" not in pilot | ground
-    assert "fuel_reserve_minutes_at_naive_arrival" in pilot and "fuel_reserve_minutes_at_naive_arrival" not in atc | ground
-    assert "crew_free_from" in ground and "crew_free_from" not in atc | pilot
+    assert "other_scheduled_arrivals" in atc and "other_scheduled_arrivals" not in {**pilot, **ground}
+    assert "fuel_reserve_minutes_at_naive_arrival" in pilot and "fuel_reserve_minutes_at_naive_arrival" not in {**atc, **ground}
+    assert "crew_free_from" in ground and "crew_free_from" not in {**atc, **pilot}
 
 
 def test_low_fuel_declares_emergency_automatically(monkeypatch):
@@ -85,3 +85,27 @@ def test_agent_error_stops_cleanly(monkeypatch):
     events, log = _run(monkeypatch, boom, _fake_review("ACCEPT"))
     assert log["outcome"]["status"] == "error"
     assert any(e["type"] == "error" for e in events)
+
+
+def test_no_option_left_goes_to_next_round_instead_of_stopping(monkeypatch):
+    # Round 1: ATC and Pilot declarations clash (ATC needs <= 10:45, Pilot blocks everything
+    # before 11:00), so no option is allowed. Round 2: normal declarations -> consensus.
+    normal = _fake_propose()
+
+    def propose(role, state, round_no, context):
+        r = normal(role, state, round_no, context)
+        if round_no == 1 and role == "atc":
+            r.update(proposal={"revised_arrival_time": "10:44", "gate_assignment": "D12"},
+                     latest_acceptable_arrival="10:45", blocked_slots="")
+        if round_no == 1 and role == "pilot":
+            r.update(proposal={"revised_arrival_time": "11:05", "gate_assignment": "D12"},
+                     blocked_slots="10:00-11:00 any", latest_acceptable_arrival="11:30")
+        if round_no == 2:
+            assert context["previous_round"]["no_option_left"] is True
+        return r
+
+    events, log = _run(monkeypatch, propose, _fake_review("ACCEPT"))
+    summaries = [e for e in events if e["type"] == "turn_summary"]
+    assert summaries[0]["mediator"]["reasons"] == ["no allowed option left"]
+    assert log["outcome"]["status"] == "consensus"
+    assert log["outcome"]["turn_reached"] == 2

@@ -81,6 +81,25 @@ def parse_declaration(decl: dict, state: dict) -> dict:
         if decl.get("preferred_window"):
             warnings.append(f"ignored preferred_window {decl['preferred_window']!r}")
 
+    # An agent cannot declare its own proposal unacceptable. If a blocked slot or the latest
+    # arrival rules out the agent's own proposal, the declaration contradicts itself: drop that
+    # part. This never weakens safety - every option still passes the real check() first.
+    own_t = _time((decl.get("proposal") or {}).get("revised_arrival_time"))
+    own_g = (decl.get("proposal") or {}).get("gate_assignment")
+    if own_t is not None:
+        if latest is not None and own_t > latest:
+            warnings.append(f"dropped latest_acceptable_arrival {hhmm(latest)}: it is before your own "
+                            f"proposal {hhmm(own_t)}")
+            latest = None
+        kept = []
+        for start, end, gate in blocked:
+            if start <= own_t <= end and (gate is None or gate == own_g):
+                warnings.append(f"dropped blocked slot {hhmm(start)}-{hhmm(end)} {gate or 'any'}: "
+                                f"it contains your own proposal {hhmm(own_t)} {own_g}")
+            else:
+                kept.append((start, end, gate))
+        blocked = kept
+
     # A gate preference only counts if declared - many agents (e.g. ATC) don't care about gates.
     gate = decl.get("preferred_gate")
     if gate and gate not in state["gate_occupancy"]:

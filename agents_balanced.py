@@ -110,7 +110,33 @@ def private_view(role: str, state: dict) -> dict:
         view["gate_nearest_crew_base"] = d.get("ground_preferred_gate", d["current_gate"])
         view.pop("requested_gate", None)  # the pilot's / airline's wish, not ground's own data
     view["emergency"] = state.get("emergency")
+    view["your_limits_computed_by_code"] = _computed_limits(role, state)
     return view
+
+
+def _computed_limits(role: str, state: dict) -> dict:
+    """Exact limits derived from this role's OWN data, so the model does not have to do the
+    arithmetic (in live runs it often declared limits stricter than its data allowed, which
+    left no option for anyone). Copy these into blocked_slots / latest_acceptable_arrival."""
+    c, d, naive = state["constraints"], state["derived"], state["naive_arrival_minutes"]
+    if role == "pilot":
+        spare = d["fuel_reserve_minutes_at_naive_arrival"] - c["min_fuel_reserve_minutes"]
+        return {"latest_arrival_keeping_min_fuel_reserve": hhmm(naive + max(spare, 0)),
+                "note": f"You can hold up to {max(spare, 0)} min past {state['naive_arrival']} and still land "
+                        f"above the {c['min_fuel_reserve_minutes']} min reserve."}
+    if role == "atc":
+        gap = c["min_wake_separation_minutes"] - 1
+        return {"arrival_times_blocked_by_wake_separation": [
+            f"{hhmm(a['arrival_minutes'] - gap)}-{hhmm(a['arrival_minutes'] + gap)} any (around {a['flight']})"
+            for a in state["other_arrivals"]]}
+    if role == "ground":
+        turnaround = c.get("min_turnaround_minutes", 25)
+        latest = d["ground_crew_shift_end_minutes"] + c["max_crew_overtime_minutes"]
+        return {"latest_arrival_within_crew_overtime_limit": hhmm(latest),
+                "arrival_times_blocked_per_gate": [
+                    f"{hhmm(start - turnaround + 1)}-{hhmm(end - 1)} {gate}"
+                    for gate, windows in state["gate_occupancy"].items() for start, end in windows]}
+    return {}
 
 
 def _system(role: str, state: dict) -> str:

@@ -108,11 +108,23 @@ def run(scenario_id: str = scenario.DEFAULT_SCENARIO, simulate_low_fuel: bool = 
         mediated = balancer.mediate(published, state, excluded)
         if not mediated["found"]:
             summary = {"type": "turn_summary", "turn": rnd, "final_proposal": None, "final_constraint_ok": False,
-                       "final_violations": [], "mediator": {"consensus": False, "reasons": ["no allowed option left"]}}
+                       "final_violations": [], "mediator": {"consensus": False, "reasons": ["no allowed option left"]},
+                       "counts": mediated["counts"], "parse_warnings": mediated["parse_warnings"]}
             turn_log["summary"] = summary
             log["turns"].append(turn_log)
             yield summary
-            break
+            # Give the agents another round to loosen their declarations, instead of stopping here.
+            previous_round = {
+                "no_option_left": True,
+                "message": ("No arrival time and gate was allowed by every agent's declaration together. "
+                            "Check your blocked_slots and latest_acceptable_arrival against the others' "
+                            "declarations, and block only what your own data really rules out."),
+                "option_counts": mediated["counts"],
+                "declarations_that_clashed": {r: {k: d.get(k) for k in ("proposal", "blocked_slots",
+                                                                         "latest_acceptable_arrival")}
+                                              for r, d in published.items()},
+            }
+            continue
 
         yield {"type": "balance", "turn": rnd, "result": mediated}
         turn_log["events"].append({

@@ -99,3 +99,29 @@ def test_emergency_is_automatic_and_puts_the_pilot_first():
     result = balancer.mediate(DECLARATIONS, state)
     assert result["scores"]["pilot"] == 10.0
     assert balancer.check(result["proposal"], state)[0] is True
+
+
+def test_declaration_that_blocks_its_own_proposal_is_repaired():
+    # Seen in a live run: ATC proposed 10:39 but declared "latest 10:39" and "blocked 10:33-10:39".
+    import scenario
+    state = scenario.initial_state()
+    decl = {
+        "proposal": {"revised_arrival_time": "10:39", "gate_assignment": "D12"},
+        "blocked_slots": "10:33-10:39 any; 10:41-10:47 any",
+        "latest_acceptable_arrival": "10:39",
+    }
+    parsed = balancer.parse_declaration(decl, state)
+    assert parsed["latest"] == balancer.minutes_since_midnight("10:39")  # own time is not after it: kept
+    assert all(not (s <= parsed["latest"] <= e) for s, e, _ in parsed["blocked"])
+    assert any("dropped blocked slot 10:33-10:39" in w for w in parsed["warnings"])
+    assert balancer.declared_block(decl["proposal"], parsed) is None
+
+
+def test_latest_before_own_proposal_is_dropped():
+    import scenario
+    state = scenario.initial_state()
+    decl = {"proposal": {"revised_arrival_time": "10:50", "gate_assignment": "D12"},
+            "latest_acceptable_arrival": "10:45"}
+    parsed = balancer.parse_declaration(decl, state)
+    assert parsed["latest"] is None
+    assert parsed["warnings"]
