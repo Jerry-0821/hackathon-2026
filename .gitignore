@@ -10,3 +10,4 @@ data/
 consensus_log.json
 negotiation_log.html
 streamlit.log
+benchmark_results.json

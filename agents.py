@@ -7,6 +7,7 @@ a strict JSON shape via tool-use so it's always machine-parseable.
 
 import json
 import os
+import time
 
 import anthropic
 from dotenv import load_dotenv
@@ -121,6 +122,7 @@ def call_agent(role: str, state: dict, current_proposal: dict, constraint_result
     client = _get_client()
     user_message = _build_user_message(role, state, current_proposal, constraint_result, turn)
 
+    start = time.monotonic()
     try:
         resp = client.messages.create(
             model=MODEL,
@@ -151,4 +153,9 @@ def call_agent(role: str, state: dict, current_proposal: dict, constraint_result
     result["from"] = role
     result["turn"] = turn
     result["proposal_under_review"] = current_proposal
+    result["_perf"] = {
+        "latency_seconds": round(time.monotonic() - start, 3),
+        "input_tokens": resp.usage.input_tokens,
+        "output_tokens": resp.usage.output_tokens,
+    }
     return result
