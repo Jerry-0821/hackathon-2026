@@ -149,7 +149,8 @@ def _payload(turn: int, role: str, ctx: dict) -> dict:
 
 def _clean(raw: dict, ids: list[str], role: str, flight_ids: list[str]) -> dict:
     p = ai._clean_position(raw, ids)  # repairs ranking, keeps valid vetoes
-    p["acceptable"] = [i for i in (str(x).strip().upper()[:1] for x in raw.get("acceptable") or []) if i in ids]
+    acceptable = [ai.option_id(x, ids) for x in raw.get("acceptable") or []]
+    p["acceptable"] = [i for n, i in enumerate(acceptable) if i and i not in acceptable[:n]]
     p["priorities"] = {m: raw[f"priority_{m}"] for m, _, _ in mediation.ROLE_METRICS[role]
                        if raw.get(f"priority_{m}") in mediation.PRIORITY_WEIGHT}
     # Models write "DL1183" or "dl 1183" for "DL 1183": match flight IDs ignoring spaces and case.

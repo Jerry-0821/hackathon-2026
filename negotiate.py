@@ -69,6 +69,8 @@ def _parallel(fn, roles):
                 out[r] = (fut.result(), None)
             except AgentCallError as e:
                 out[r] = (None, str(e))
+            except Exception as e:  # noqa: BLE001 - a bad model answer must not crash the demo
+                out[r] = (None, f"{r}: unexpected {type(e).__name__}: {e}")
         return out
 
 

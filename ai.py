@@ -15,6 +15,7 @@ the structured messages addressed to it.
 from __future__ import annotations
 
 import json
+import re
 import time
 
 import anthropic
@@ -343,21 +344,33 @@ def rank_options(role: str, round_no: int, event: dict, disruption: dict, option
     return _clean_position(raw, [o["id"] for o in options]), perf
 
 
+def option_id(value, ids: list[str]) -> str | None:
+    """Read an option ID out of whatever the model wrote: "A", "a", "Option A", "A (Fastest flow)".
+    Returns None if no known ID is found."""
+    text = str(value).strip()
+    if text.upper() in ids:
+        return text.upper()
+    for match in re.findall(r"(?<![A-Za-z])([A-Za-z])(?![A-Za-z])", text):
+        if match.upper() in ids:
+            return match.upper()
+    return None
+
+
 def _clean_position(raw: dict, ids: list[str]) -> dict:
     ranking, repaired = [], False
     for x in raw.get("ranking") or []:
-        x = str(x).strip().upper()[:1]
-        if x in ids and x not in ranking:
-            ranking.append(x)
+        oid = option_id(x, ids)
+        if oid and oid not in ranking:
+            ranking.append(oid)
         else:
             repaired = True
     missing = [i for i in ids if i not in ranking]
     if missing:
         repaired = True
         ranking += missing
-    vetoes = [{"option": str(v.get("option", "")).strip().upper()[:1], "reason": v.get("reason", "")}
+    vetoes = [{"option": option_id(v.get("option", ""), ids), "reason": v.get("reason", "")}
               for v in raw.get("vetoes") or [] if isinstance(v, dict)]
-    vetoes = [v for v in vetoes if v["option"] in ids]
+    vetoes = [v for v in vetoes if v["option"]]
     return {"ranking": ranking, "vetoes": vetoes, "argument": raw.get("argument", ""),
             "reply": raw.get("reply", ""), "ranking_repaired": repaired, "source": "llm"}
 

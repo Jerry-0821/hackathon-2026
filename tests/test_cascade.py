@@ -138,3 +138,33 @@ def test_pipeline_reaches_a_decision_when_every_llm_call_fails(monkeypatch):
     assert steps["decision"]["winner"] in [o["id"] for o in steps["options"]["options"]]
     assert steps["brief"]["source"].startswith("template")
     assert sum(len(v) for v in steps["options"]["safety_violations"].values()) == 0
+
+
+def test_option_ids_are_read_from_messy_model_output():
+    ids = ["A", "B", "C"]
+    assert ai.option_id("Option A", ids) == "A"
+    assert ai.option_id("b", ids) == "B"
+    assert ai.option_id("C (Max fuel margin)", ids) == "C"
+    assert ai.option_id("Fastest flow", ids) is None  # no standalone letter that is an ID
+    assert ai.option_id("D", ids) is None
+    p = ai._clean_position({"ranking": ["Option C", "option a", "B"], "vetoes": [{"option": "Option B", "reason": "r"}],
+                            "argument": "", "reply": ""}, ids)
+    assert p["ranking"] == ["C", "A", "B"]
+    assert p["ranking_repaired"] is False
+    assert p["vetoes"] == [{"option": "B", "reason": "r"}]
+
+
+def test_unexpected_error_in_an_agent_call_falls_back_to_the_stand_in(monkeypatch):
+    def broken(role, *args, **kwargs):
+        if role == "pilot":
+            raise KeyError("ranking")  # a malformed model answer, not an API error
+        return ({"ranking": ["A", "B", "C"], "vetoes": [], "argument": "", "reply": "", "ranking_repaired": False,
+                 "source": "llm"}, {"latency_seconds": 0, "input_tokens": 0, "output_tokens": 0})
+
+    monkeypatch.setattr(ai, "parse_disruption", lambda *a, **k: (_ for _ in ()).throw(AgentCallError("off")))
+    monkeypatch.setattr(ai, "rank_options", broken)
+    monkeypatch.setattr(ai, "write_brief", lambda *a, **k: (_ for _ in ()).throw(AgentCallError("off")))
+    steps = {e["type"] if e["type"] != "round" else f"round{e['round']}": e for e in negotiate.run(DEMO[0])}
+    assert steps["round1"]["positions"]["pilot"]["source"] == "deterministic"
+    assert any("KeyError" in w for w in steps["round1"]["warnings"])
+    assert steps["decision"]["winner"]
