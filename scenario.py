@@ -108,6 +108,36 @@ SCENARIOS = {
     },
 }
 
+# Same real DOT row as weather_dfw_mia, but the derived ops fields give the agents real
+# trade-offs: a ~25min fuel window, more traffic to sequence around, a crew that is busy
+# until naive+12, and gates that favour different agents (D12 for connections, D9 for crew).
+SCENARIOS["weather_dfw_mia_busy_hub"] = {
+    "label": "AA 1057 - DFW to MIA - weather delay (102min) - busy hub, real trade-offs",
+    "flight": dict(SCENARIOS["weather_dfw_mia"]["flight"]),
+    "derived": {
+        "fuel_reserve_minutes_at_naive_arrival": 55,
+        "connecting_passengers": 18,
+        "current_gate": "D9",
+        "requested_gate": "D12",
+        "ground_crew_shift_end_offset": 32,
+        "crew_ready_offset": 12,  # crew is turning another aircraft until naive+12
+        "ground_preferred_gate": "D9",  # nearest the crew base
+        "connection_cutoff_offsets": {"D12": 12, "default": 6},  # D12 is next to the connecting concourse
+    },
+    "other_arrivals_offsets": [
+        {"flight": "DL 824", "offset": -2, "gate": "D10"},
+        {"flight": "UA 331", "offset": 6, "gate": "D14"},
+        {"flight": "WN 210", "offset": 14, "gate": "D10"},
+        {"flight": "B6 77", "offset": 20, "gate": "D14"},
+    ],
+    "gate_occupancy_offsets": {
+        "D9": [(-40, -5)],
+        "D10": [(-10, 25)],
+        "D12": [],
+        "D14": [(0, 30)],
+    },
+}
+
 DEFAULT_SCENARIO = "weather_dfw_mia"
 
 
