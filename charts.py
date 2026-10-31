@@ -96,7 +96,9 @@ def timeline(plan: dict, flights: list[dict], closures: list[tuple[int, int]]) -
 
 
 METHOD_LABELS = {"baseline": "No coordination (FCFS)", "min_delay": "Min-delay optimiser",
-                 "negotiated": "Negotiated (3 agents)"}
+                 "mediated": "Mediated (3 agents, demo default)", "vote": "Vote (3 agents)"}
+# Slots 1-4 of the validated palette; adjacent bars only, and every bar carries a value label.
+METHOD_COLORS = [ORANGE, AQUA, BLUE, "#eda100"]
 METRIC_LABELS = {
     "total_delay_min": "Total delay (min)",
     "downstream_delay_min": "Knock-on departure delay (min)",
@@ -113,13 +115,13 @@ def method_bars(summary: dict) -> alt.Chart:
             for m in METHOD_LABELS for k in METRIC_LABELS]
     df = pd.DataFrame(rows)
     color = alt.Color("method:N", title=None, legend=alt.Legend(orient="top"),
-                      scale=alt.Scale(domain=list(METHOD_LABELS.values()), range=[ORANGE, AQUA, BLUE]))
+                      scale=alt.Scale(domain=list(METHOD_LABELS.values()), range=METHOD_COLORS))
     base = alt.Chart(df).encode(
         y=alt.Y("method:N", title=None, sort=list(METHOD_LABELS.values()), axis=None),
         x=alt.X("value:Q", title=None),
     )
     bars = base.mark_bar(cornerRadiusEnd=4, height=16).encode(color=color, tooltip=["method:N", "metric:N", "value:Q"])
     text = base.mark_text(align="left", dx=4, color=INK).encode(text=alt.Text("value:Q", format=".1f"))
-    return (bars + text).properties(width=230, height=80).facet(
+    return (bars + text).properties(width=230, height=100).facet(
         facet=alt.Facet("metric:N", title=None, sort=list(METRIC_LABELS.values())), columns=3
     ).resolve_scale(x="independent")

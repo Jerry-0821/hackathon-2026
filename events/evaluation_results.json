@@ -22,7 +22,17 @@
    "crew_overtime_min": 22.2,
    "events_with_diversion": 0
   },
-  "negotiated": {
+  "mediated": {
+   "diversions": 0,
+   "total_delay_min": 200.88,
+   "pax_missed": 141.78,
+   "min_fuel_margin_min": 8.47,
+   "gate_changes": 3.3,
+   "downstream_delay_min": 140.03,
+   "crew_overtime_min": 22.2,
+   "events_with_diversion": 0
+  },
+  "vote": {
    "diversions": 0,
    "total_delay_min": 200.45,
    "pax_missed": 141.35,
@@ -32,7 +42,7 @@
    "crew_overtime_min": 22.2,
    "events_with_diversion": 0
   },
-  "negotiated_vs_baseline": {
+  "mediated_vs_baseline": {
    "diversions": {
     "better": 1,
     "same": 39,
@@ -44,24 +54,24 @@
     "worse": 0
    },
    "pax_missed": {
-    "better": 23,
-    "same": 12,
-    "worse": 5
+    "better": 21,
+    "same": 11,
+    "worse": 8
    },
    "min_fuel_margin_min": {
-    "better": 23,
-    "same": 12,
-    "worse": 5
+    "better": 27,
+    "same": 11,
+    "worse": 2
    },
    "gate_changes": {
     "better": 0,
-    "same": 5,
-    "worse": 35
+    "same": 3,
+    "worse": 37
    },
    "downstream_delay_min": {
-    "better": 34,
+    "better": 33,
     "same": 4,
-    "worse": 2
+    "worse": 3
    },
    "crew_overtime_min": {
     "better": 34,
@@ -69,7 +79,13 @@
     "worse": 0
    }
   },
-  "total_safety_violations": 0
+  "total_safety_violations": 0,
+  "mediated_outcomes": {
+   "consensus": 40,
+   "mediator_fallback": 0,
+   "vote_fallback": 0
+  },
+  "minimum_fuel_events": 4
  },
  "events": [
   {
@@ -99,7 +115,16 @@
      "downstream_delay_min": 254,
      "crew_overtime_min": 51
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 340,
+     "pax_missed": 129,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 3,
+     "downstream_delay_min": 254,
+     "crew_overtime_min": 51
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 340,
      "pax_missed": 129,
@@ -108,7 +133,9 @@
      "downstream_delay_min": 254,
      "crew_overtime_min": 51
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "ATL-2015-01-03-1600",
@@ -137,7 +164,16 @@
      "downstream_delay_min": 133,
      "crew_overtime_min": 35
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 227,
+     "pax_missed": 81,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 2,
+     "downstream_delay_min": 246,
+     "crew_overtime_min": 35
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 227,
      "pax_missed": 109,
@@ -146,7 +182,9 @@
      "downstream_delay_min": 133,
      "crew_overtime_min": 35
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "ATL-2015-02-26-1005",
@@ -175,7 +213,16 @@
      "downstream_delay_min": 249,
      "crew_overtime_min": 34
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 240,
+     "pax_missed": 93,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 4,
+     "downstream_delay_min": 245,
+     "crew_overtime_min": 34
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 240,
      "pax_missed": 93,
@@ -184,7 +231,9 @@
      "downstream_delay_min": 245,
      "crew_overtime_min": 34
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "ATL-2015-05-18-1441",
@@ -213,7 +262,16 @@
      "downstream_delay_min": 265,
      "crew_overtime_min": 28
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 219,
+     "pax_missed": 104,
+     "min_fuel_margin_min": 9,
+     "gate_changes": 0,
+     "downstream_delay_min": 265,
+     "crew_overtime_min": 28
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 219,
      "pax_missed": 104,
@@ -222,7 +280,9 @@
      "downstream_delay_min": 265,
      "crew_overtime_min": 28
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "ATL-2015-08-06-1445",
@@ -251,7 +311,16 @@
      "downstream_delay_min": 253,
      "crew_overtime_min": 37
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 230,
+     "pax_missed": 91,
+     "min_fuel_margin_min": 5,
+     "gate_changes": 0,
+     "downstream_delay_min": 253,
+     "crew_overtime_min": 37
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 230,
      "pax_missed": 91,
@@ -260,7 +329,9 @@
      "downstream_delay_min": 253,
      "crew_overtime_min": 37
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "ATL-2015-09-03-1840",
@@ -289,7 +360,16 @@
      "downstream_delay_min": 307,
      "crew_overtime_min": 50
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 248,
+     "pax_missed": 99,
+     "min_fuel_margin_min": 5,
+     "gate_changes": 4,
+     "downstream_delay_min": 307,
+     "crew_overtime_min": 50
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 248,
      "pax_missed": 99,
@@ -298,7 +378,9 @@
      "downstream_delay_min": 307,
      "crew_overtime_min": 50
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": true
   },
   {
    "event_id": "CLT-2015-03-01-1503",
@@ -327,7 +409,16 @@
      "downstream_delay_min": 44,
      "crew_overtime_min": 31
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 167,
+     "pax_missed": 120,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 4,
+     "downstream_delay_min": 28,
+     "crew_overtime_min": 31
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 167,
      "pax_missed": 120,
@@ -336,7 +427,9 @@
      "downstream_delay_min": 28,
      "crew_overtime_min": 31
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "CLT-2015-03-04-1040",
@@ -365,7 +458,16 @@
      "downstream_delay_min": 159,
      "crew_overtime_min": 0
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 142,
+     "pax_missed": 91,
+     "min_fuel_margin_min": 11,
+     "gate_changes": 4,
+     "downstream_delay_min": 159,
+     "crew_overtime_min": 0
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 142,
      "pax_missed": 91,
@@ -374,7 +476,9 @@
      "downstream_delay_min": 159,
      "crew_overtime_min": 0
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "CLT-2015-03-12-1322",
@@ -403,7 +507,16 @@
      "downstream_delay_min": 97,
      "crew_overtime_min": 4
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 171,
+     "pax_missed": 113,
+     "min_fuel_margin_min": 9,
+     "gate_changes": 3,
+     "downstream_delay_min": 117,
+     "crew_overtime_min": 4
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 171,
      "pax_missed": 113,
@@ -412,7 +525,9 @@
      "downstream_delay_min": 117,
      "crew_overtime_min": 4
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "CLT-2015-03-31-1500",
@@ -441,7 +556,16 @@
      "downstream_delay_min": 157,
      "crew_overtime_min": 29
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 301,
+     "pax_missed": 180,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 5,
+     "downstream_delay_min": 157,
+     "crew_overtime_min": 29
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 301,
      "pax_missed": 180,
@@ -450,7 +574,9 @@
      "downstream_delay_min": 157,
      "crew_overtime_min": 29
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "CLT-2015-04-04-1004",
@@ -479,7 +605,16 @@
      "downstream_delay_min": 5,
      "crew_overtime_min": 34
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 228,
+     "pax_missed": 80,
+     "min_fuel_margin_min": 5,
+     "gate_changes": 4,
+     "downstream_delay_min": 5,
+     "crew_overtime_min": 34
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 228,
      "pax_missed": 80,
@@ -488,7 +623,9 @@
      "downstream_delay_min": 5,
      "crew_overtime_min": 34
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": true
   },
   {
    "event_id": "DEN-2015-03-17-1801",
@@ -517,7 +654,16 @@
      "downstream_delay_min": 58,
      "crew_overtime_min": 12
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 64,
+     "pax_missed": 107,
+     "min_fuel_margin_min": 9,
+     "gate_changes": 2,
+     "downstream_delay_min": 58,
+     "crew_overtime_min": 12
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 64,
      "pax_missed": 107,
@@ -526,7 +672,9 @@
      "downstream_delay_min": 58,
      "crew_overtime_min": 12
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "DEN-2015-04-03-1020",
@@ -555,7 +703,16 @@
      "downstream_delay_min": 188,
      "crew_overtime_min": 10
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 216,
+     "pax_missed": 224,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 4,
+     "downstream_delay_min": 185,
+     "crew_overtime_min": 10
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 216,
      "pax_missed": 224,
@@ -564,7 +721,9 @@
      "downstream_delay_min": 185,
      "crew_overtime_min": 10
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "DEN-2015-04-24-1802",
@@ -593,7 +752,16 @@
      "downstream_delay_min": 136,
      "crew_overtime_min": 34
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 211,
+     "pax_missed": 156,
+     "min_fuel_margin_min": 12,
+     "gate_changes": 3,
+     "downstream_delay_min": 89,
+     "crew_overtime_min": 34
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 211,
      "pax_missed": 156,
@@ -602,7 +770,9 @@
      "downstream_delay_min": 89,
      "crew_overtime_min": 34
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "DEN-2015-05-17-1020",
@@ -631,7 +801,16 @@
      "downstream_delay_min": 99,
      "crew_overtime_min": 0
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 179,
+     "pax_missed": 169,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 3,
+     "downstream_delay_min": 101,
+     "crew_overtime_min": 0
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 179,
      "pax_missed": 143,
@@ -640,7 +819,9 @@
      "downstream_delay_min": 99,
      "crew_overtime_min": 0
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "DFW-2015-01-06-1805",
@@ -669,7 +850,16 @@
      "downstream_delay_min": 221,
      "crew_overtime_min": 67
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 341,
+     "pax_missed": 141,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 0,
+     "downstream_delay_min": 221,
+     "crew_overtime_min": 67
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 341,
      "pax_missed": 141,
@@ -678,7 +868,9 @@
      "downstream_delay_min": 221,
      "crew_overtime_min": 67
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "DFW-2015-03-25-1820",
@@ -707,7 +899,16 @@
      "downstream_delay_min": 255,
      "crew_overtime_min": 80
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 367,
+     "pax_missed": 204,
+     "min_fuel_margin_min": 12,
+     "gate_changes": 4,
+     "downstream_delay_min": 235,
+     "crew_overtime_min": 80
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 367,
      "pax_missed": 190,
@@ -716,7 +917,9 @@
      "downstream_delay_min": 255,
      "crew_overtime_min": 80
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "DFW-2015-08-01-1740",
@@ -745,7 +948,16 @@
      "downstream_delay_min": 152,
      "crew_overtime_min": 16
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 210,
+     "pax_missed": 130,
+     "min_fuel_margin_min": 2,
+     "gate_changes": 4,
+     "downstream_delay_min": 188,
+     "crew_overtime_min": 16
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 210,
      "pax_missed": 142,
@@ -754,7 +966,9 @@
      "downstream_delay_min": 152,
      "crew_overtime_min": 16
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": true
   },
   {
    "event_id": "DFW-2015-08-16-0902",
@@ -783,7 +997,16 @@
      "downstream_delay_min": 212,
      "crew_overtime_min": 20
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 320,
+     "pax_missed": 163,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 4,
+     "downstream_delay_min": 212,
+     "crew_overtime_min": 20
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 320,
      "pax_missed": 163,
@@ -792,7 +1015,9 @@
      "downstream_delay_min": 212,
      "crew_overtime_min": 20
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "DFW-2015-12-03-1740",
@@ -821,7 +1046,16 @@
      "downstream_delay_min": 81,
      "crew_overtime_min": 0
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 157,
+     "pax_missed": 128,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 4,
+     "downstream_delay_min": 81,
+     "crew_overtime_min": 0
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 157,
      "pax_missed": 128,
@@ -830,7 +1064,9 @@
      "downstream_delay_min": 81,
      "crew_overtime_min": 0
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "DFW-2015-12-04-1720",
@@ -859,7 +1095,16 @@
      "downstream_delay_min": 95,
      "crew_overtime_min": 9
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 138,
+     "pax_missed": 135,
+     "min_fuel_margin_min": 13,
+     "gate_changes": 2,
+     "downstream_delay_min": 95,
+     "crew_overtime_min": 9
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 138,
      "pax_missed": 135,
@@ -868,7 +1113,9 @@
      "downstream_delay_min": 95,
      "crew_overtime_min": 9
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "DTW-2015-07-18-1826",
@@ -897,7 +1144,16 @@
      "downstream_delay_min": 0,
      "crew_overtime_min": 34
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 252,
+     "pax_missed": 180,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 4,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 34
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 252,
      "pax_missed": 180,
@@ -906,7 +1162,9 @@
      "downstream_delay_min": 0,
      "crew_overtime_min": 34
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "DTW-2015-07-29-1841",
@@ -935,7 +1193,16 @@
      "downstream_delay_min": 229,
      "crew_overtime_min": 29
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 250,
+     "pax_missed": 175,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 4,
+     "downstream_delay_min": 210,
+     "crew_overtime_min": 29
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 246,
      "pax_missed": 204,
@@ -944,7 +1211,9 @@
      "downstream_delay_min": 229,
      "crew_overtime_min": 29
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "DTW-2015-09-04-1840",
@@ -973,7 +1242,16 @@
      "downstream_delay_min": 83,
      "crew_overtime_min": 22
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 170,
+     "pax_missed": 147,
+     "min_fuel_margin_min": 12,
+     "gate_changes": 2,
+     "downstream_delay_min": 83,
+     "crew_overtime_min": 22
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 170,
      "pax_missed": 147,
@@ -982,7 +1260,9 @@
      "downstream_delay_min": 83,
      "crew_overtime_min": 22
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "DTW-2015-09-10-1102",
@@ -1011,7 +1291,16 @@
      "downstream_delay_min": 105,
      "crew_overtime_min": 13
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 212,
+     "pax_missed": 221,
+     "min_fuel_margin_min": 9,
+     "gate_changes": 5,
+     "downstream_delay_min": 102,
+     "crew_overtime_min": 13
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 212,
      "pax_missed": 224,
@@ -1020,7 +1309,9 @@
      "downstream_delay_min": 105,
      "crew_overtime_min": 13
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "IAH-2015-05-20-1804",
@@ -1049,7 +1340,16 @@
      "downstream_delay_min": 172,
      "crew_overtime_min": 13
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 204,
+     "pax_missed": 240,
+     "min_fuel_margin_min": 12,
+     "gate_changes": 5,
+     "downstream_delay_min": 164,
+     "crew_overtime_min": 13
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 204,
      "pax_missed": 240,
@@ -1058,7 +1358,9 @@
      "downstream_delay_min": 164,
      "crew_overtime_min": 13
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "MIA-2015-05-16-1000",
@@ -1087,7 +1389,16 @@
      "downstream_delay_min": 21,
      "crew_overtime_min": 0
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 112,
+     "pax_missed": 51,
+     "min_fuel_margin_min": 13,
+     "gate_changes": 5,
+     "downstream_delay_min": 22,
+     "crew_overtime_min": 0
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 112,
      "pax_missed": 51,
@@ -1096,7 +1407,9 @@
      "downstream_delay_min": 21,
      "crew_overtime_min": 0
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "MIA-2015-07-13-1543",
@@ -1125,7 +1438,16 @@
      "downstream_delay_min": 9,
      "crew_overtime_min": 3
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 163,
+     "pax_missed": 161,
+     "min_fuel_margin_min": 11,
+     "gate_changes": 5,
+     "downstream_delay_min": 7,
+     "crew_overtime_min": 3
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 163,
      "pax_missed": 161,
@@ -1134,7 +1456,9 @@
      "downstream_delay_min": 7,
      "crew_overtime_min": 3
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "MIA-2015-07-21-1000",
@@ -1163,7 +1487,16 @@
      "downstream_delay_min": 0,
      "crew_overtime_min": 0
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 27,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 2,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 27,
      "pax_missed": 0,
@@ -1172,7 +1505,9 @@
      "downstream_delay_min": 0,
      "crew_overtime_min": 0
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "MSP-2015-01-19-1630",
@@ -1201,7 +1536,16 @@
      "downstream_delay_min": 125,
      "crew_overtime_min": 10
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 158,
+     "pax_missed": 136,
+     "min_fuel_margin_min": 13,
+     "gate_changes": 2,
+     "downstream_delay_min": 140,
+     "crew_overtime_min": 10
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 158,
      "pax_missed": 118,
@@ -1210,7 +1554,9 @@
      "downstream_delay_min": 125,
      "crew_overtime_min": 10
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "MSP-2015-02-03-1840",
@@ -1239,7 +1585,16 @@
      "downstream_delay_min": 133,
      "crew_overtime_min": 12
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 144,
+     "pax_missed": 99,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 5,
+     "downstream_delay_min": 133,
+     "crew_overtime_min": 12
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 144,
      "pax_missed": 99,
@@ -1248,7 +1603,9 @@
      "downstream_delay_min": 133,
      "crew_overtime_min": 12
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "MSP-2015-04-15-1822",
@@ -1277,7 +1634,16 @@
      "downstream_delay_min": 160,
      "crew_overtime_min": 10
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 263,
+     "pax_missed": 241,
+     "min_fuel_margin_min": 5,
+     "gate_changes": 4,
+     "downstream_delay_min": 163,
+     "crew_overtime_min": 10
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 259,
      "pax_missed": 254,
@@ -1286,7 +1652,9 @@
      "downstream_delay_min": 160,
      "crew_overtime_min": 10
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "MSP-2015-06-29-1642",
@@ -1315,7 +1683,16 @@
      "downstream_delay_min": 178,
      "crew_overtime_min": 0
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 180,
+     "pax_missed": 112,
+     "min_fuel_margin_min": 9,
+     "gate_changes": 4,
+     "downstream_delay_min": 166,
+     "crew_overtime_min": 0
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 180,
      "pax_missed": 112,
@@ -1324,7 +1701,9 @@
      "downstream_delay_min": 166,
      "crew_overtime_min": 0
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "MSP-2015-09-20-1821",
@@ -1353,7 +1732,16 @@
      "downstream_delay_min": 199,
      "crew_overtime_min": 6
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 251,
+     "pax_missed": 282,
+     "min_fuel_margin_min": 5,
+     "gate_changes": 4,
+     "downstream_delay_min": 199,
+     "crew_overtime_min": 6
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 251,
      "pax_missed": 282,
@@ -1362,7 +1750,9 @@
      "downstream_delay_min": 199,
      "crew_overtime_min": 6
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": true
   },
   {
    "event_id": "MSP-2015-09-20-1840",
@@ -1391,7 +1781,16 @@
      "downstream_delay_min": 81,
      "crew_overtime_min": 5
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 80,
+     "pax_missed": 88,
+     "min_fuel_margin_min": 11,
+     "gate_changes": 3,
+     "downstream_delay_min": 81,
+     "crew_overtime_min": 5
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 80,
      "pax_missed": 88,
@@ -1400,7 +1799,9 @@
      "downstream_delay_min": 81,
      "crew_overtime_min": 5
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "ORD-2015-03-01-1705",
@@ -1429,7 +1830,16 @@
      "downstream_delay_min": 189,
      "crew_overtime_min": 34
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 185,
+     "pax_missed": 180,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 131,
+     "crew_overtime_min": 34
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 185,
      "pax_missed": 172,
@@ -1438,7 +1848,9 @@
      "downstream_delay_min": 123,
      "crew_overtime_min": 34
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "ORD-2015-06-24-1640",
@@ -1467,7 +1879,16 @@
      "downstream_delay_min": 179,
      "crew_overtime_min": 19
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 166,
+     "pax_missed": 110,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 4,
+     "downstream_delay_min": 203,
+     "crew_overtime_min": 19
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 157,
      "pax_missed": 128,
@@ -1476,7 +1897,9 @@
      "downstream_delay_min": 179,
      "crew_overtime_min": 19
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "ORD-2015-07-22-1821",
@@ -1505,7 +1928,16 @@
      "downstream_delay_min": 31,
      "crew_overtime_min": 0
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 126,
+     "pax_missed": 109,
+     "min_fuel_margin_min": 11,
+     "gate_changes": 3,
+     "downstream_delay_min": 31,
+     "crew_overtime_min": 0
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 126,
      "pax_missed": 109,
@@ -1514,7 +1946,9 @@
      "downstream_delay_min": 31,
      "crew_overtime_min": 0
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "ORD-2015-11-29-1821",
@@ -1543,7 +1977,16 @@
      "downstream_delay_min": 58,
      "crew_overtime_min": 10
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 92,
+     "pax_missed": 117,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 75,
+     "crew_overtime_min": 10
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 92,
      "pax_missed": 63,
@@ -1552,7 +1995,9 @@
      "downstream_delay_min": 58,
      "crew_overtime_min": 10
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   },
   {
    "event_id": "ORD-2015-12-07-1242",
@@ -1581,7 +2026,16 @@
      "downstream_delay_min": 190,
      "crew_overtime_min": 87
     },
-    "negotiated": {
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 284,
+     "pax_missed": 284,
+     "min_fuel_margin_min": 15,
+     "gate_changes": 2,
+     "downstream_delay_min": 190,
+     "crew_overtime_min": 87
+    },
+    "vote": {
      "diversions": 0,
      "total_delay_min": 284,
      "pax_missed": 284,
@@ -1590,7 +2044,9 @@
      "downstream_delay_min": 190,
      "crew_overtime_min": 87
     }
-   }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
   }
  ],
  "llm_runs": [

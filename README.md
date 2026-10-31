@@ -11,8 +11,8 @@ between Claude and code:
 |---|---|---|
 | 1. Read the messages | Claude | Turns a raw NOTAM, METAR and free-text ops note into structured facts. Code then checks every fact against the airport data and converts UTC to local time. |
 | 2. Generate options | Code (`solver.py`) | Simulates ~1,650 landing orders and gate plans. Keeps only safe ones (runway rate, wake separation, final reserve fuel, gate availability). Finds the Pareto front and picks 3-5 representative options. |
-| 3. Rank and argue | Claude x3 | ATC, Flight Crew and Ground Ops each rank the options from their own side, then see each other's positions and reply in a second round. They can veto. |
-| 4. Decide | Code (`negotiate.py`) | Fixed voting rule: Borda count, vetoes remove an option, ties go to the most balanced option. |
+| 3. Negotiate | Claude x3 | ATC, Flight Crew and Ground Ops, each seeing only its own organisation's data. **Mediated (default):** turn 1 declares priorities, positions and optional own plans; a mediator (code) recommends the option where the worst-off agent does best; turn 2 is accept or object. **Vote:** two ranking rounds, with vetoes. |
+| 4. Decide | Code (`negotiate_mediated.py`, `negotiate.py`) | Mediated: consensus if all three accept, else the best option all three called acceptable, else Borda + veto. Vote: Borda count, vetoes remove an option, ties go to the most balanced option. |
 | 5. Brief | Claude | Writes a plain-English decision brief from code-computed comparisons. |
 
 Every LLM step has a deterministic fallback, so the demo always reaches a safe decision.
@@ -23,8 +23,9 @@ delays, tail numbers, each aircraft's next departure, onward connections). Field
 are synthetic, derived deterministically from reference tables in `reference_data.py`, and
 labelled in the UI.
 
-**Evaluation.** `evaluate.py` runs all 40 events (278 flights) and compares the negotiated outcome
-with a no-coordination baseline and a single-objective optimiser. See the Evaluation page.
+**Evaluation.** `evaluate.py` runs all 40 events (278 flights) with deterministic stand-in agents and
+compares both agent processes with a no-coordination baseline and a single-objective optimiser.
+See the Evaluation page.
 
 The original single-flight negotiation (v1) is still available as its own page.
 Its design spec: [`.plans/atc-multiagent-negotiation-spec.md`](.plans/atc-multiagent-negotiation-spec.md).
@@ -38,9 +39,10 @@ Its design spec: [`.plans/atc-multiagent-negotiation-spec.md`](.plans/atc-multia
 | `views/evaluation.py` | Evaluation results page |
 | `views/single_flight.py` | v1 single-flight negotiation page |
 | `views/balanced_negotiation.py`, `orchestrator_balanced.py`, `agents_balanced.py`, `balancer.py`, `rules.py`, `scoring.py`, `compare.py` | Balanced negotiation: parallel proposals + mediator (design: `.plans/balanced-negotiation-design.md`) |
-| `ai.py` | All Claude calls for the cascade: intake, agent rankings, decision brief |
+| `ai.py`, `ai_negotiation.py` | Claude calls for the cascade: intake, agent positions and rankings, decision brief |
+| `negotiate_mediated.py`, `mediation.py`, `cascade_rules.py` | Mediated process: rule tiers, mediator recommendation, two agent turns (design: `.plans/cascade-negotiation-design.md`) |
 | `solver.py` | Deterministic plan generator, Pareto front, independent safety check |
-| `negotiate.py` | Cascade pipeline and the voting rule |
+| `negotiate.py` | Vote process and shared pipeline pieces |
 | `charts.py` | Altair charts |
 | `reference_data.py` | Aircraft, wake, airport and ops reference tables |
 | `build_cascades.py` | Builds `events/cascades.json` from `data/flights.csv` (run once) |
@@ -75,7 +77,7 @@ powershell -ExecutionPolicy Bypass -File setup.ps1
 ```powershell
 .venv\Scripts\Activate.ps1
 python test_api.py      # check the key (optional)
-python -m pytest        # offline unit tests, no API calls
+python -m pytest        # offline unit tests, no API calls (add -m slow for the 1-minute all-events test)
 streamlit run app.py    # open the web app
 ```
 

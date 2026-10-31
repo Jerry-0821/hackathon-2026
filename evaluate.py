@@ -7,9 +7,10 @@ Methods compared on every event (same disruption, same safety rules):
 - baseline:      first-come-first-served, every flight waits for its planned gate
                  (no coordination - what happens if nobody re-plans)
 - min_delay:     single-objective optimiser, minimises total delay only
-- negotiated:    the multi-stakeholder process with deterministic stand-in agents
-                 (same voting rule as the live demo, no LLM, fully reproducible)
-- llm_agents:    the live pipeline with Claude agents (only with --agents N)
+- mediated:      the demo's default process with deterministic stand-in agents: hard rules,
+                 mediator recommendation, all three must accept (no LLM, reproducible)
+- vote:          the alternative process: two ranking rounds, Borda count + veto (no LLM)
+- llm_agents:    the live vote pipeline with Claude agents (only with --agents N)
 
 Writes events/evaluation_results.json, which the Evaluation page reads.
 """
@@ -22,11 +23,14 @@ import statistics
 import time
 from pathlib import Path
 
+import cascade_rules
+import mediation
 import negotiate
 import solver
 
 EVENTS_PATH = Path("events/cascades.json")
 OUT_PATH = Path("events/evaluation_results.json")
+METHODS = ["baseline", "min_delay", "mediated", "vote"]
 METRICS = ["diversions", "total_delay_min", "pax_missed", "min_fuel_margin_min", "gate_changes",
            "downstream_delay_min", "crew_overtime_min"]
 
@@ -40,11 +44,13 @@ def evaluate_event(event: dict) -> dict:
     gen = solver.generate_options(problem)
     options = gen["options"]
     positions = {r: negotiate.proxy_position(r, options) for r in negotiate.ROLES}
-    decision = negotiate.decide(options, positions)
+    vote = negotiate.decide(options, positions)
+    mediated = mediated_decision(options)
     chosen = {
         "baseline": gen["baseline"],
         "min_delay": min(options, key=lambda o: (o["metrics"]["diversions"], o["metrics"]["total_delay_min"])),
-        "negotiated": next(o for o in options if o["id"] == decision["winner"]),
+        "mediated": next(o for o in options if o["id"] == mediated["winner"]),
+        "vote": next(o for o in options if o["id"] == vote["winner"]),
     }
     violations = sum(len(solver.verify(problem, p)) for p in options + [gen["baseline"]])
     return {
@@ -56,7 +62,25 @@ def evaluate_event(event: dict) -> dict:
         "front_size": gen["front_size"],
         "safety_violations": violations,
         "methods": {m: {k: p["metrics"][k] for k in METRICS} for m, p in chosen.items()},
+        "mediated_method": mediated["method"],
+        "minimum_fuel": mediated["emergency"] is not None,
     }
+
+
+def mediated_decision(options: list[dict]) -> dict:
+    """The mediated process with deterministic stand-in agents, same code path as the demo."""
+    emergency = cascade_rules.detect_minimum_fuel(options)
+    hard = cascade_rules.evaluate(options, emergency)
+    scores = mediation.score_options(options)
+    positions = {r: mediation.proxy_position(r, options, scores, hard["violations"]) for r in mediation.ROLES}
+    rec = mediation.recommend(options, scores, positions, hard_violations=hard["violations"], emergency=emergency)
+    votes = {r: mediation.proxy_vote(r, options, scores, rec, hard["violations"]) for r in mediation.ROLES}
+    if mediation.consensus(votes):
+        return {"winner": rec["option"], "method": "consensus", "emergency": emergency}
+    fallback = mediation.resolve_without_consensus(options, scores, votes, rec, hard["violations"], emergency)
+    if fallback:
+        return {"winner": fallback["option"], "method": "mediator_fallback", "emergency": emergency}
+    return {"winner": negotiate.decide(options, votes)["winner"], "method": "vote_fallback", "emergency": emergency}
 
 
 def run_llm(event: dict) -> dict:
@@ -86,18 +110,21 @@ def run_llm(event: dict) -> dict:
 
 def summarise(rows: list[dict]) -> dict:
     summary = {}
-    for method in ["baseline", "min_delay", "negotiated"]:
+    for method in METHODS:
         summary[method] = {k: round(statistics.mean(r["methods"][method][k] for r in rows), 2) for k in METRICS}
         summary[method]["events_with_diversion"] = sum(r["methods"][method]["diversions"] > 0 for r in rows)
     wins = {}
     for k in METRICS:
         better_is_higher = k == "min_fuel_margin_min"
-        b = [(r["methods"]["negotiated"][k], r["methods"]["baseline"][k]) for r in rows]
+        b = [(r["methods"]["mediated"][k], r["methods"]["baseline"][k]) for r in rows]
         wins[k] = {"better": sum((n > x) if better_is_higher else (n < x) for n, x in b),
                    "same": sum(n == x for n, x in b),
                    "worse": sum((n < x) if better_is_higher else (n > x) for n, x in b)}
-    summary["negotiated_vs_baseline"] = wins
+    summary["mediated_vs_baseline"] = wins
     summary["total_safety_violations"] = sum(r["safety_violations"] for r in rows)
+    summary["mediated_outcomes"] = {m: sum(r["mediated_method"] == m for r in rows)
+                                    for m in ("consensus", "mediator_fallback", "vote_fallback")}
+    summary["minimum_fuel_events"] = sum(r["minimum_fuel"] for r in rows)
     return summary
 
 
