@@ -26,7 +26,7 @@ st.title("Runway closure cascade")
 st.caption(
     "A runway closes and a bank of real arrivals has to be re-planned. Claude reads the raw "
     "messages. Code generates only safe plans. Three Claude agents (ATC, Flight Crew, Ground Ops) "
-    "rank the plans and argue trade-offs. A fixed voting rule picks the outcome."
+    "negotiate over the plans. Code decides: a mediator all three must accept, or a Borda vote."
 )
 
 events = load_events()
@@ -71,7 +71,7 @@ with st.expander("Flights in this bank", expanded=False):
         "Onward flights": ", ".join(f"{c['flight']} {c['departure']}" for c in f["connections"]),
         "Aircraft's next departure": (f"{f['next_departure']['flight']} {f['next_departure']['departure']}"
                                       if f["next_departure"] else "-"),
-    } for f in event["flights"]]), hide_index=True, use_container_width=True)
+    } for f in event["flights"]]), hide_index=True, width="stretch")
     st.caption("Real: flights, times, delays, tail numbers, each aircraft's next departure, and onward flights "
                "(DOT 2015). *Synthetic: aircraft type (from airline + distance), wake category, fuel, gate IDs "
                "and passenger counts, derived deterministically from reference tables. Simplified rules, not for "
@@ -130,7 +130,7 @@ with icol:
     rows.append({"Fact": f"{d['flight_rules']} ({ceiling}, visibility {d['visibility_sm']} SM)",
                  "Local time": "", "Source text": "METAR"})
     rows += [{"Fact": n, "Local time": "", "Source text": "noted, not modelled"} for n in d.get("other_notes", [])]
-    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+    st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
 with vcol:
     st.markdown("**Checked by code**")
     st.caption("Runways and gates must exist at this airport. UTC times are converted to local by code, not by the model.")
@@ -156,7 +156,7 @@ k[3].metric("Safety violations (independent re-check)", total_viol)
 st.caption("Every plan respects runway rate and wake separation, lands every flight above final reserve fuel "
            "(or diverts it), and uses only open, free, size-compatible gates. Pareto-optimal: no other plan is "
            "better on every objective at once.")
-st.altair_chart(charts.plan_cloud(opts["cloud"], options, baseline, decision["winner"]), use_container_width=True)
+st.altair_chart(charts.plan_cloud(opts["cloud"], options, baseline, decision["winner"]), width="stretch")
 
 metric_cols = {"diversions": "Diversions", "total_delay_min": "Total delay (min)", "pax_missed": "Missed connections (pax)",
                "min_fuel_margin_min": "Lowest fuel margin (min)", "gate_changes": "Gate changes",
@@ -164,7 +164,7 @@ metric_cols = {"diversions": "Diversions", "total_delay_min": "Total delay (min)
                "last_landing": "Last landing"}
 table = [{"Option": o["id"], "Name": o["name"], **{v: o["metrics"][k2] for k2, v in metric_cols.items()}} for o in options]
 table.append({"Option": "-", "Name": baseline["name"], **{v: baseline["metrics"][k2] for k2, v in metric_cols.items()}})
-st.dataframe(pd.DataFrame(table), hide_index=True, use_container_width=True)
+st.dataframe(pd.DataFrame(table), hide_index=True, width="stretch")
 
 # ---------------------------------------------------------------------------
 def _message_line(m: dict) -> str:
@@ -234,7 +234,7 @@ if process == "mediated":
                                 **{ai.ROLE_NAMES[r]: table[o["id"]][r] for r in negotiate.ROLES},
                                 "Lowest score": min(table[o["id"]].values()),
                                 "Breaks hard rule": "; ".join(v["detail"] for v in hard["violations"].get(o["id"], [])) or "-"}
-                               for o in options]), hide_index=True, use_container_width=True)
+                               for o in options]), hide_index=True, width="stretch")
     st.markdown(f"Recommendation: **{rec['option']}** ({rec['rule']}) - scores "
                 + ", ".join(f"{ai.ROLE_NAMES[k]} {v}" for k, v in rec["scores"].items())
                 + ("; acceptable to all three" if rec["acceptable_to_all"] else ""))
@@ -294,7 +294,7 @@ else:
     vote_rows = [{"Option": o["id"], "Name": o["name"], "Points": decision["borda"][o["id"]],
                   "Vetoed by": ", ".join(v["by"] for v in decision["vetoes"].get(o["id"], [])) or "-",
                   "Eligible": "yes" if o["id"] in decision["eligible"] else "no"} for o in options]
-    st.dataframe(pd.DataFrame(vote_rows).sort_values("Points", ascending=False), hide_index=True, use_container_width=True)
+    st.dataframe(pd.DataFrame(vote_rows).sort_values("Points", ascending=False), hide_index=True, width="stretch")
     if decision["note"]:
         st.warning(decision["note"])
     ranks = ", ".join(f"#{v} for {k2}" for k2, v in decision["winner_rank_by_agent"].items())
@@ -311,7 +311,7 @@ st.subheader(f"{9 if process == 'mediated' else 6}. The plan")
 which = st.radio("Show", [f"Chosen option {winner['id']}", "No-coordination baseline"], horizontal=True)
 plan = winner if which.startswith("Chosen") else baseline
 problem = opts["problem"]
-st.altair_chart(charts.timeline(plan, event["flights"], problem["closures"]), use_container_width=True)
+st.altair_chart(charts.timeline(plan, event["flights"], problem["closures"]), width="stretch")
 st.dataframe(pd.DataFrame([{
     "Flight": r["flight"],
     "Lands": r.get("landing", "DIVERTS"),
@@ -321,7 +321,7 @@ st.dataframe(pd.DataFrame([{
     "Gate wait (min)": r.get("gate_wait_min", ""),
     "Missed connections": ", ".join(r.get("missed_connections", [])) or "-",
     "Knock-on to next departure (min)": r.get("knock_on_min", ""),
-} for r in plan["rows"]]), hide_index=True, use_container_width=True)
+} for r in plan["rows"]]), hide_index=True, width="stretch")
 
 st.download_button("Download the full decision log (JSON)", json.dumps(steps["done"]["log"], indent=1),
                    file_name=f"{event_id}-decision-log.json")

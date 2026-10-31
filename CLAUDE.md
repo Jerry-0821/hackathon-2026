@@ -22,6 +22,6 @@ Fill this in when the idea is decided:
 Only edit files your teammate owns when asked. Do not rewrite whole files when a small edit works — big rewrites cause merge conflicts.
 
 ## Code
-- All Claude API calls go in `ai.py`. UI code goes in `app.py`.
+- Claude API calls go only in `ai.py` and `ai_negotiation.py` (cascade) and `agents.py` and `agents_balanced.py` (single flight). UI code goes in `app.py` and `views/`. Safety checks and decisions are code, never the model.
 - Keep the demo path working at all times. A working small demo beats a broken big one.
 - Run `streamlit run app.py` and check the change in the browser before saying it works.

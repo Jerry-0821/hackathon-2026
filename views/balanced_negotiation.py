@@ -4,7 +4,8 @@ Design: .plans/balanced-negotiation-design.md"""
 
 from __future__ import annotations
 
-import streamlit.components.v1 as components
+from pathlib import Path
+
 import streamlit as st
 
 import log_render
@@ -33,6 +34,10 @@ low_fuel = st.checkbox(
 
 state = scenario.initial_state(scenario_id)
 flight = state["flight"]
+if rules.fuel_emergency_needed(state):
+    st.caption(f"In this scenario the fuel reserve at the earliest arrival is already "
+               f"{state['derived']['fuel_reserve_minutes_at_naive_arrival']} min, at or below the trigger, so "
+               "Minimum Fuel is declared with or without the checkbox.")
 with st.container(border=True):
     cols = st.columns(4)
     cols[0].metric("Flight", f"{flight['airline']} {flight['flight_number']}")
@@ -148,5 +153,4 @@ if st.button("Run negotiation", type="primary"):
 
         if outcome["status"] != "error":
             html_path = log_render.render_to_file(final_log)
-            with open(html_path, encoding="utf-8") as f:
-                components.html(f.read(), height=900, scrolling=True)
+            st.iframe(Path(html_path), height=900)

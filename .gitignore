@@ -12,3 +12,4 @@ negotiation_log.html
 streamlit.log
 benchmark_results.json
 cascade_log.json
+compare_results.json

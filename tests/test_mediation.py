@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 import ai
 import ai_negotiation
 import cascade_rules
@@ -103,6 +105,7 @@ def test_hard_rules_are_relaxed_only_when_no_option_meets_them():
     assert hard["violations"]["B"] == [] and hard["violations"]["A"]
 
 
+@pytest.mark.slow  # solves all 40 events (~1 min); run with: python -m pytest -m slow
 def test_minimum_fuel_is_declared_automatically_on_real_events():
     flagged = []
     for e in EVENTS:

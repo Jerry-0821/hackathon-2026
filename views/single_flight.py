@@ -1,4 +1,5 @@
-import streamlit.components.v1 as components
+from pathlib import Path
+
 import streamlit as st
 
 import log_render
@@ -97,5 +98,4 @@ if st.button("Run negotiation", type="primary"):
         if outcome["status"] != "error":
             html_path = log_render.render_to_file(final_log)
             st.caption(f"Full consensus log written to consensus_log.json; static visualization at {html_path}")
-            with open(html_path, encoding="utf-8") as f:
-                components.html(f.read(), height=900, scrolling=True)
+            st.iframe(Path(html_path), height=900)
