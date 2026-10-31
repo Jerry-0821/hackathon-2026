@@ -7,7 +7,9 @@ import streamlit as st
 
 import ai
 import charts
+import mediation
 import negotiate
+import negotiate_mediated
 import solver
 
 ROLE_ICON = {"atc": "🗼", "pilot": "👨‍✈️", "ground": "🧳"}
@@ -77,27 +79,36 @@ with st.expander("Flights in this bank", expanded=False):
 
 use_llm = st.toggle("Use Claude agents", value=True,
                     help="Off: deterministic stand-ins for every LLM step. No API cost, same safety guarantees.")
+PROCESSES = {"mediated": "Negotiate to consensus (mediator recommends, all three must accept)",
+             "vote": "Vote once (two ranking rounds, Borda + veto)"}
+process = st.radio("Decision process", list(PROCESSES), format_func=PROCESSES.get, horizontal=True)
 
 if st.button("Run", type="primary"):
     steps = {}
     with st.status("Working...", expanded=True) as status:
         labels = {"intake": "Read the messages", "options": "Generated safe options",
                   "round": "Agents ranked the options", "decision": "Applied the voting rule",
+                  "opening": "Agents stated their opening positions",
                   "brief": "Wrote the decision brief"}
-        for ev in negotiate.run(event, texts, use_llm=use_llm):
+        pipeline = negotiate_mediated.run if process == "mediated" else negotiate.run
+        for ev in pipeline(event, texts, use_llm=use_llm):
             t = ev["type"]
             if t == "round":
                 steps[f"round{ev['round']}"] = ev
                 st.write(f"Round {ev['round']}: agents ranked the options")
+            elif t == "mediation_round":
+                steps[f"mround{ev['round']}"] = ev
+                st.write(f"Round {ev['round']}: mediator recommended {ev['recommendation']['option']}, "
+                         + ("all three accepted" if ev["consensus"] else "no consensus yet"))
             else:
                 steps[t] = ev
                 if t in labels:
                     st.write(labels[t])
         status.update(label="Done", state="complete", expanded=False)
-    st.session_state["cascade"] = {"event_id": event_id, "texts": texts, "steps": steps}
+    st.session_state["cascade"] = {"event_id": event_id, "texts": texts, "steps": steps, "process": process}
 
 result = st.session_state.get("cascade")
-if not result or result["event_id"] != event_id:
+if not result or result["event_id"] != event_id or result.get("process", "vote") != process:
     st.info("Press Run to start.")
     st.stop()
 
@@ -156,44 +167,116 @@ table.append({"Option": "-", "Name": baseline["name"], **{v: baseline["metrics"]
 st.dataframe(pd.DataFrame(table), hide_index=True, use_container_width=True)
 
 # ---------------------------------------------------------------------------
-st.subheader("4. Agents rank the options and argue")
-for rnd in (1, 2):
-    r = steps[f"round{rnd}"]
-    st.markdown(f"**Round {rnd}**" + (" - each agent sees the others' round 1 positions" if rnd == 2 else " - independent"))
-    for w in r["warnings"]:
-        st.warning(w)
-    cols = st.columns(3)
-    for col, role in zip(cols, negotiate.ROLES):
-        p = r["positions"][role]
-        with col.container(border=True):
-            st.markdown(f"{ROLE_ICON[role]} **{ai.ROLE_NAMES[role]}**"
-                        + (" · deterministic stand-in" if p["source"] != "llm" else ""))
-            st.markdown("Ranking: " + " > ".join(f"**{x}**" if i == 0 else x for i, x in enumerate(p["ranking"])))
-            for v in p["vetoes"]:
-                st.error(f"Vetoes {v['option']}: {v['reason']}")
-            if p["argument"]:
-                st.write(p["argument"])
-            if rnd == 2 and p.get("reply"):
-                st.caption(f"Reply: {p['reply']}")
-st.caption("Agents can misread numbers. The table in step 3 is computed by code and is the source of truth.")
+def _message_line(m: dict) -> str:
+    to = "everyone" if m["to"] == "all" else ai.ROLE_NAMES[m["to"]]
+    return f"{ROLE_ICON[m['from']]} **{ai.ROLE_NAMES[m['from']]} → {to}** · _{m['type']}_: {m['text']}"
 
-# ---------------------------------------------------------------------------
-st.subheader("5. Decision")
-st.caption("Fixed rule, no LLM: Borda count over the round 2 rankings (first place = "
-           f"{len(options) - 1} points). A vetoed option is not eligible unless every option is vetoed. "
-           "Ties go to the option with the best balance across all objectives.")
-vote_rows = [{"Option": o["id"], "Name": o["name"], "Points": decision["borda"][o["id"]],
-              "Vetoed by": ", ".join(v["by"] for v in decision["vetoes"].get(o["id"], [])) or "-",
-              "Eligible": "yes" if o["id"] in decision["eligible"] else "no"} for o in options]
-st.dataframe(pd.DataFrame(vote_rows).sort_values("Points", ascending=False), hide_index=True, use_container_width=True)
-if decision["note"]:
-    st.warning(decision["note"])
-ranks = ", ".join(f"#{v} for {k2}" for k2, v in decision["winner_rank_by_agent"].items())
-wm = winner["metrics"]
-st.success(f"**Option {winner['id']} - {winner['name']}** ({ranks}). "
-           f"{wm['diversions']} diversions · {wm['total_delay_min']} min total delay "
-           f"(baseline {baseline['metrics']['total_delay_min']}) · {wm['pax_missed']} pax miss connections "
-           f"(baseline {baseline['metrics']['pax_missed']}) · lowest fuel margin {wm['min_fuel_margin_min']} min.")
+
+def _position_card(col, role: str, p: dict, vote: str | None = None) -> None:
+    with col.container(border=True):
+        badge = {"ACCEPT": " · ✅ ACCEPT", "OBJECT": " · ✋ OBJECT"}.get(vote or "", "")
+        st.markdown(f"{ROLE_ICON[role]} **{ai.ROLE_NAMES[role]}**{badge}"
+                    + (" · deterministic stand-in" if p["source"] != "llm" else ""))
+        st.markdown(f"Prefers **{p['ranking'][0]}** · can accept: {', '.join(p.get('acceptable', [])) or '-'}")
+        for v in p["vetoes"]:
+            st.error(f"Vetoes {v['option']}: {v['reason']}")
+        if p["argument"]:
+            st.write(p["argument"])
+
+
+if process == "mediated":
+    st.subheader("4. Agents negotiate, the mediator recommends")
+    st.caption("Mediator = code, no LLM. It scores every option 0-10 for each agent from that agent's objectives "
+               "(10 = best of these options for them), skips options someone vetoed or the agents already "
+               "rejected, prefers options every agent said it can accept, and recommends the one where the "
+               "worst-off agent scores highest. The result only stands if all three agents ACCEPT.")
+    table = mediation.score_table(steps["done"]["log"]["steps"]["scores"])
+    st.dataframe(pd.DataFrame([{"Option": o["id"], "Name": o["name"],
+                                **{ai.ROLE_NAMES[r]: table[o["id"]][r] for r in negotiate.ROLES},
+                                "Lowest score": min(table[o["id"]].values())} for o in options]),
+                 hide_index=True, use_container_width=True)
+
+    opening = steps["opening"]
+    st.markdown("**Opening positions** - all three at the same time, nobody speaks first")
+    for w in opening["warnings"]:
+        st.warning(w)
+    for col, role in zip(st.columns(3), negotiate.ROLES):
+        _position_card(col, role, opening["positions"][role])
+    for m in opening["messages"]:
+        st.markdown(_message_line(m))
+
+    rnd = 1
+    while f"mround{rnd}" in steps:
+        r = steps[f"mround{rnd}"]
+        rec = r["recommendation"]
+        st.markdown(f"**Round {rnd}** - mediator recommends **{rec['option']}** "
+                    f"(scores: {', '.join(f'{ai.ROLE_NAMES[k]} {v}' for k, v in rec['scores'].items())}"
+                    + ("; acceptable to all three" if rec["acceptable_to_all"] else "") + ")")
+        for n in rec["notes"]:
+            st.caption(n)
+        for w in r["warnings"]:
+            st.warning(w)
+        for col, role in zip(st.columns(3), negotiate.ROLES):
+            _position_card(col, role, r["votes"][role], r["votes"][role].get("vote"))
+        for m in r["messages"]:
+            st.markdown(_message_line(m))
+        (st.success if r["consensus"] else st.warning)(
+            f"Round {rnd}: " + ("all three accepted - consensus." if r["consensus"]
+                                else f"no consensus, option {rec['option']} is set aside for the next round."))
+        rnd += 1
+    st.caption("Agents can misread numbers. The tables above are computed by code and are the source of truth.")
+
+    st.subheader("5. Decision")
+    wm = winner["metrics"]
+    if decision["method"] == "consensus":
+        how = f"all three agents accepted it in round {decision['consensus_round']}"
+    else:
+        how = (f"no consensus after {negotiate_mediated.MAX_ROUNDS} rounds, so the deterministic fallback "
+               "(Borda + veto over the final rankings) chose it")
+    st.success(f"**Option {winner['id']} - {winner['name']}**: {how}. Scores: "
+               + ", ".join(f"{ai.ROLE_NAMES[k]} {v}" for k, v in decision["scores"].items()) + ". "
+               f"{wm['diversions']} diversions · {wm['total_delay_min']} min total delay "
+               f"(baseline {baseline['metrics']['total_delay_min']}) · {wm['pax_missed']} pax miss connections "
+               f"(baseline {baseline['metrics']['pax_missed']}) · lowest fuel margin {wm['min_fuel_margin_min']} min.")
+else:
+    st.subheader("4. Agents rank the options and argue")
+    for rnd in (1, 2):
+        r = steps[f"round{rnd}"]
+        st.markdown(f"**Round {rnd}**" + (" - each agent sees the others' round 1 positions" if rnd == 2 else " - independent"))
+        for w in r["warnings"]:
+            st.warning(w)
+        cols = st.columns(3)
+        for col, role in zip(cols, negotiate.ROLES):
+            p = r["positions"][role]
+            with col.container(border=True):
+                st.markdown(f"{ROLE_ICON[role]} **{ai.ROLE_NAMES[role]}**"
+                            + (" · deterministic stand-in" if p["source"] != "llm" else ""))
+                st.markdown("Ranking: " + " > ".join(f"**{x}**" if i == 0 else x for i, x in enumerate(p["ranking"])))
+                for v in p["vetoes"]:
+                    st.error(f"Vetoes {v['option']}: {v['reason']}")
+                if p["argument"]:
+                    st.write(p["argument"])
+                if rnd == 2 and p.get("reply"):
+                    st.caption(f"Reply: {p['reply']}")
+    st.caption("Agents can misread numbers. The table in step 3 is computed by code and is the source of truth.")
+
+    # -----------------------------------------------------------------------
+    st.subheader("5. Decision")
+    st.caption("Fixed rule, no LLM: Borda count over the round 2 rankings (first place = "
+               f"{len(options) - 1} points). A vetoed option is not eligible unless every option is vetoed. "
+               "Ties go to the option with the best balance across all objectives.")
+    vote_rows = [{"Option": o["id"], "Name": o["name"], "Points": decision["borda"][o["id"]],
+                  "Vetoed by": ", ".join(v["by"] for v in decision["vetoes"].get(o["id"], [])) or "-",
+                  "Eligible": "yes" if o["id"] in decision["eligible"] else "no"} for o in options]
+    st.dataframe(pd.DataFrame(vote_rows).sort_values("Points", ascending=False), hide_index=True, use_container_width=True)
+    if decision["note"]:
+        st.warning(decision["note"])
+    ranks = ", ".join(f"#{v} for {k2}" for k2, v in decision["winner_rank_by_agent"].items())
+    wm = winner["metrics"]
+    st.success(f"**Option {winner['id']} - {winner['name']}** ({ranks}). "
+               f"{wm['diversions']} diversions · {wm['total_delay_min']} min total delay "
+               f"(baseline {baseline['metrics']['total_delay_min']}) · {wm['pax_missed']} pax miss connections "
+               f"(baseline {baseline['metrics']['pax_missed']}) · lowest fuel margin {wm['min_fuel_margin_min']} min.")
 st.markdown("**Decision brief**" + ("" if brief["source"] == "llm" else f" ({brief['source']})"))
 st.info(brief["text"])
 
