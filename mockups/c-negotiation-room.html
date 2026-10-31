@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mockup C - Negotiation room</title>
+<style>
+  :root {
+    --ink: #1d2128; --muted: #6b7280; --line: #e5e7eb; --bg: #f3f4f6;
+    --atc: #2a78d6; --pilot: #eb6834; --ground: #12996a; --med: #475569; --sys: #94a3b8;
+    --red: #dc2626; --amber: #b7791f; --green: #16a34a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 "Segoe UI", system-ui, sans-serif; height: 100vh; display: grid; grid-template-rows: auto 1fr auto; }
+  header { background: #fff; border-bottom: 1px solid var(--line); padding: 12px 22px; display: flex; align-items: center; gap: 14px; }
+  header h1 { font-size: 16px; margin: 0; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  .spacer { flex: 1; }
+  button { font: 600 14px inherit; border: 0; border-radius: 8px; padding: 8px 16px; cursor: pointer; background: var(--ink); color: #fff; }
+  button.light { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .wrap { display: grid; grid-template-columns: 1fr 360px; min-height: 0; }
+  /* chat */
+  .chat { overflow: auto; padding: 22px 26px 40px; }
+  .day { text-align: center; color: var(--muted); font-size: 12px; margin: 6px 0 16px; }
+  .day span { background: var(--bg); padding: 0 10px; position: relative; }
+  .msg { display: grid; grid-template-columns: 40px 1fr; gap: 10px; margin-bottom: 14px; animation: pop .35s ease; }
+  @keyframes pop { from { opacity: 0; transform: translateY(6px); } }
+  .av { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-size: 20px; color: #fff; }
+  .who { font-weight: 700; font-size: 14px; }
+  .who small { font-weight: 400; color: var(--muted); margin-left: 6px; font-size: 12px; }
+  .bubble { background: #fff; border: 1px solid var(--line); border-radius: 4px 12px 12px 12px; padding: 10px 14px; margin-top: 3px; max-width: 720px; }
+  .bubble.sys { background: #f8fafc; border-style: dashed; color: #334155; }
+  .to { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 99px; margin-right: 6px; }
+  .fields { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
+  .f { font-size: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; background: #fafafa; }
+  .f b { font-weight: 600; }
+  .f.high { border-color: #f4c97a; background: #fff8e8; }
+  .f.no { border-color: #f5b5b5; background: #fef2f2; color: var(--red); }
+  .f.yes { border-color: #a7e3bd; background: #f0fdf4; color: var(--green); }
+  details { margin-top: 6px; } summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+  pre { background: #0f172a; color: #cbd5e1; font: 11.5px/1.5 Consolas, monospace; padding: 10px; border-radius: 6px; overflow: auto; margin: 6px 0 0; }
+  .typing { color: var(--muted); font-size: 13px; font-style: italic; margin: 0 0 14px 50px; }
+  /* sidebar */
+  aside { background: #fff; border-left: 1px solid var(--line); overflow: auto; padding: 18px 18px 30px; }
+  aside h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 18px 0 8px; }
+  aside h3:first-child { margin-top: 0; }
+  .turns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .turn { text-align: center; padding: 8px 4px; border-radius: 8px; background: var(--bg); color: var(--muted); font-size: 12px; font-weight: 600; }
+  .turn.on { background: var(--ink); color: #fff; } .turn.done { background: #dcfce7; color: var(--green); }
+  .turn.unused { border: 1px dashed var(--line); background: #fff; }
+  .opt { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; transition: all .3s; }
+  .opt .top { display: flex; justify-content: space-between; font-weight: 600; }
+  .opt .meta { color: var(--muted); font-size: 12px; }
+  .opt.out { opacity: .5; background: #fef2f2; }
+  .opt.win { border: 2px solid var(--green); background: #f0fdf4; }
+  .acc { display: flex; gap: 6px; margin-top: 6px; }
+  .acc span { font-size: 11px; padding: 1px 7px; border-radius: 99px; background: var(--bg); color: var(--muted); }
+  .acc span.y { color: #fff; } .acc span.n { background: #fee2e2; color: var(--red); text-decoration: line-through; }
+  .check { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #f1f5f9; }
+  .ok { color: var(--green); font-weight: 600; } .warn { color: var(--amber); font-weight: 600; }
+  .final { border-radius: 12px; background: #f0fdf4; border: 1px solid #a7e3bd; padding: 14px; display: none; }
+  .final b { font-size: 18px; color: var(--green); }
+  /* runway strip */
+  footer { background: #fff; border-top: 1px solid var(--line); padding: 10px 22px 12px; }
+  footer .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: flex; justify-content: space-between; }
+  svg text { font: 11px "Segoe UI", sans-serif; fill: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>#clt-runway-closure</h1>
+  <span class="sub">KCLT · RWY 18C/36C closed 14:57-15:34 · IMC +TSRA · gate D23 out · 7 arrivals</span>
+  <span class="spacer"></span>
+  <button class="light" onclick="play(true)">Skip to end</button>
+  <button onclick="play(false)">▶ Start negotiation</button>
+</header>
+
+<div class="wrap">
+  <div class="chat" id="chat">
+    <div class="day"><span>Press Start. Every message below is a structured message between separate agents.</span></div>
+  </div>
+  <aside>
+    <h3>Turn limit</h3>
+    <div class="turns"><div class="turn" id="t1">Turn 1</div><div class="turn" id="t2">Turn 2</div><div class="turn unused" id="t3">Turn 3</div></div>
+    <h3>Options · who can accept</h3>
+    <div id="opts"></div>
+    <h3>Cross-domain checks (code)</h3>
+    <div class="check"><span>Wake separation, runway rate</span><span class="ok">✓ all</span></div>
+    <div class="check"><span>Fuel above final reserve</span><span class="ok">✓ all</span></div>
+    <div class="check"><span>Gates open, free, size OK</span><span class="ok">✓ all</span></div>
+    <div class="check"><span>ATC: holding ≤ 30 min</span><span class="ok">✓ all</span></div>
+    <div class="check"><span>Pilot: fuel buffer ≥ 5 min</span><span id="chkP">-</span></div>
+    <div class="check"><span>Ground: overtime ≤ 30 min</span><span class="warn">relaxed → 31</span></div>
+    <h3>Decision</h3>
+    <div class="final" id="final"><b>✔ Option C · consensus</b><br>
+      Turn 2 of 3 · 8 API calls · 21 s<br>Fallback not needed · 0 safety violations<br>
+      <span style="color:var(--muted);font-size:12px">Total delay 296 → 167 min · lowest fuel margin 3 → 7 min · knock-on 96 → 28 min</span><br><br>
+      <button class="light" style="width:100%">Download consensus log (JSON)</button></div>
+    <div id="pending" style="color:var(--muted);font-size:13px">Waiting for agents.</div>
+  </aside>
+</div>
+
+<footer>
+  <div class="lbl"><span>Runway 18R/36L · landing sequence <span id="planName">(no plan yet)</span></span><span>gray = ETA · color = new landing time · gate below</span></div>
+  <svg viewBox="0 0 1200 70" width="100%" height="70" id="strip"></svg>
+</footer>
+
+<script>
+const R = {
+  atc: { n: "ATC", e: "🗼", c: "var(--atc)", d: "runway, separation, throughput" },
+  pilot: { n: "Flight Crew", e: "👨‍✈️", c: "var(--pilot)", d: "fuel, safety, connections" },
+  ground: { n: "Ground Ops", e: "🧳", c: "var(--ground)", d: "gates, crew, turnarounds" },
+  med: { n: "Mediator", e: "⚖", c: "var(--med)", d: "code, no AI" },
+  sys: { n: "System", e: "⚙", c: "var(--sys)", d: "code" },
+};
+const to = r => `<span class="to" style="background:${R[r].c};color:#fff">→ ${R[r].n}</span>`;
+const J = o => `<details><summary>structured message (JSON)</summary><pre>${JSON.stringify(o, null, 1)}</pre></details>`;
+const steps = [
+  { who: "sys", turn: 0, html: `Claude read the NOTAM, METAR and ops note. Code checked every fact: runway 18C/36C closed 14:57-15:34, gate D23 out, IMC.<br>Code simulated <b>1,647 safe plans</b>, kept <b>78</b> Pareto-optimal, and sends <b>3 options</b> to the agents.`, sys: true, opts: "show" },
+  { who: "atc", turn: 1, html: `One runway left in IMC. A clears the bank by 15:27 with the least total delay.
+    <div class="fields"><span class="f high"><b>total delay</b> high</span><span class="f">max delay low</span><span class="f">prefers <b>A</b></span><span class="f yes">accepts A C B</span></div>
+    ${J({ from: "atc", turn: 1, priorities: { total_delay_min: "high", max_delay_min: "low" }, preferred: "A", acceptable: ["A", "C", "B"], vetoes: [] })}`, acc: { atc: "ACB" } },
+  { who: "pilot", turn: 1, html: `${to("ground")} B leaves US 2002 only <b>1 min</b> above our company fuel buffer. Can you take the extra gate changes in C?
+    <div class="fields"><span class="f high"><b>fuel margin</b> high</span><span class="f high"><b>missed pax</b> high</span><span class="f">prefers <b>C</b></span><span class="f yes">accepts C A</span><span class="f no">not B</span></div>
+    ${J({ from: "pilot", turn: 1, priorities: { min_fuel_margin_min: "high", pax_missed: "high" }, preferred: "C", acceptable: ["C", "A"], messages: [{ to: "ground", type: "request" }] })}`, acc: { pilot: "CA" } },
+  { who: "ground", turn: 1, html: `${to("pilot")} D23 is out and crew B is short 2 people. B has zero knock-on delay. I can live with C if US 1999 goes to D22.
+    <div class="fields"><span class="f high"><b>knock-on</b> high</span><span class="f">overtime low</span><span class="f">gate changes low</span><span class="f">prefers <b>B</b></span><span class="f yes">accepts B A C</span></div>
+    ${J({ from: "ground", turn: 1, priorities: { downstream_delay_min: "high", crew_overtime_min: "low", gate_changes: "low" }, preferred: "B", acceptable: ["B", "A", "C"], messages: [{ to: "pilot", type: "offer" }] })}`, acc: { ground: "BAC" } },
+  { who: "med", turn: 1, sys: true, html: `Removed <b>B</b>: breaks the Flight Crew hard rule (fuel buffer 1 &lt; 5 min).<br>
+    Scores from declared priorities (ATC / Crew / Ground): A 10 / 6.6 / 7.1 · C 8.3 / 9.1 / 6.8<br>
+    <b>Recommend C</b>: its worst-off agent (6.8) does better than A's (6.6). Acceptable to all three.`, out: "B", rec: "C" },
+  { who: "atc", turn: 2, html: `<span class="f yes" style="font-size:14px">✅ ACCEPT C</span> Same last landing as A. 8.3 / 10 for us.` , vote: "atc" },
+  { who: "pilot", turn: 2, html: `<span class="f yes" style="font-size:14px">✅ ACCEPT C</span> Every flight lands 7+ min above final reserve.`, vote: "pilot" },
+  { who: "ground", turn: 2, html: `<span class="f yes" style="font-size:14px">✅ ACCEPT C</span> 28 min knock-on is something crew B can absorb.`, vote: "ground" },
+  { who: "sys", turn: 3, sys: true, html: `<b>Consensus in turn 2 of 3.</b> Option C is final. The full log is saved.`, done: true },
+];
+const OPTS = { A: "Fastest flow · 167 min · fuel 6", B: "Protect connections · 191 min · fuel 1", C: "Max fuel margin · 167 min · fuel 7" };
+const acc = { A: {}, B: {}, C: {} };
+function drawOpts(state = {}) {
+  document.getElementById("opts").innerHTML = Object.keys(OPTS).map(k => `
+    <div class="opt ${state.out === k ? "out" : ""} ${state.win === k ? "win" : ""}">
+      <div class="top"><span>${k}</span>${state.rec === k ? '<span style="color:var(--green);font-size:12px">recommended</span>' : ""}</div>
+      <div class="meta">${OPTS[k]}</div>
+      <div class="acc">${["atc", "pilot", "ground"].map(r => {
+        const v = acc[k][r]; const cls = v === true ? "y" : v === false ? "n" : "";
+        return `<span class="${cls}" style="${v === true ? "background:" + R[r].c : ""}">${R[r].n}</span>`; }).join("")}</div>
+    </div>`).join("");
+}
+// runway strip: 15:00 = x 40, 1 min = 36 px
+const flights = [["1766", 3, 3, "D28"], ["2032", 7, 7, "D27"], ["1719", 9, 11, "D29*"], ["2002", 10, 15, "D28*"], ["1999", 7, 19, "D22*"], ["1962", 17, 23, "D29"], ["1995", 13, 27, "D24*"]];
+function drawStrip(done) {
+  const x = m => 40 + m * 38;
+  let s = `<line x1="20" x2="1180" y1="30" y2="30" stroke="#e5e7eb" stroke-width="14" stroke-linecap="round"/>`;
+  for (let m = 0; m <= 30; m += 5) s += `<text x="${x(m) - 12}" y="66">15:${String(m).padStart(2, "0")}</text>`;
+  flights.forEach(([f, eta, land, g], i) => {
+    s += `<circle cx="${x(eta)}" cy="30" r="4" fill="#cbd5e1"/>`;
+    if (done) s += `<line x1="${x(eta)}" x2="${x(land)}" y1="30" y2="30" stroke="#fbbf24" stroke-width="2"/>
+      <circle cx="${x(land)}" cy="30" r="7" fill="var(--atc)"/><text x="${x(land) - 18}" y="${i % 2 ? 50 : 16}" style="fill:#1d2128">${f} ${g}</text>`;
+  });
+  document.getElementById("strip").innerHTML = s;
+  document.getElementById("planName").textContent = done ? "· option C (* = gate changed)" : "(no plan yet)";
+}
+let timers = [];
+function play(skip) {
+  timers.forEach(clearTimeout); timers = [];
+  const chat = document.getElementById("chat");
+  chat.innerHTML = "";
+  for (const k in acc) acc[k] = {};
+  ["t1", "t2"].forEach(id => document.getElementById(id).className = "turn");
+  document.getElementById("final").style.display = "none";
+  document.getElementById("pending").style.display = "block";
+  document.getElementById("chkP").innerHTML = "-";
+  drawOpts(); drawStrip(false);
+  let state = {}, t = 0;
+  steps.forEach((st, i) => {
+    const show = () => {
+      if (st.turn === 1) document.getElementById("t1").className = "turn on";
+      if (st.turn === 2) { document.getElementById("t1").className = "turn done"; document.getElementById("t2").className = "turn on"; }
+      if (st.turn === 2 && i === 5) chat.insertAdjacentHTML("beforeend", `<div class="day"><span>Turn 2 of 3 · last turn · accept or object</span></div>`);
+      if (i === 1) chat.insertAdjacentHTML("beforeend", `<div class="day"><span>Turn 1 of 3 · three separate Claude calls, in parallel · each sees only its own data</span></div>`);
+      const r = R[st.who];
+      chat.insertAdjacentHTML("beforeend", `<div class="msg"><div class="av" style="background:${r.c}">${r.e}</div>
+        <div><div class="who" style="color:${r.c}">${r.n}<small>${r.d}</small></div><div class="bubble ${st.sys ? "sys" : ""}">${st.html}</div></div></div>`);
+      if (st.acc) for (const [role, list] of Object.entries(st.acc)) for (const k of "ABC") acc[k][role] = list.includes(k);
+      if (st.out) { state.out = st.out; state.rec = st.rec; document.getElementById("chkP").innerHTML = '<span style="color:var(--red);font-weight:600">✗ B</span>'; }
+      if (st.vote) acc.C[st.vote] = true;
+      if (st.done) {
+        state.win = "C"; document.getElementById("t2").className = "turn done";
+        document.getElementById("final").style.display = "block"; document.getElementById("pending").style.display = "none";
+        drawStrip(true);
+      }
+      drawOpts(state);
+      chat.scrollTop = 1e9;
+    };
+    if (skip) show(); else timers.push(setTimeout(show, t));
+    t += st.who === "med" || st.who === "sys" ? 1400 : 1000;
+  });
+}
+drawOpts(); drawStrip(false);
+</script>
+</body>
+</html>

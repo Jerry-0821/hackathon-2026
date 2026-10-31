@@ -5,6 +5,11 @@ __pycache__/
 
 # raw DOT dataset - not read at runtime (scenario.py hardcodes the derived row), download separately if needed
 data/
+flights.csv
+airlines.csv
+airports.csv
+challenge2_operational_constraints.xlsx
+*.pdf
 
 # regenerated run artifacts, not source
 consensus_log.json

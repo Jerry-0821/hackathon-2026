@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mockup B - Guided story</title>
+<style>
+  :root {
+    --ink: #14171c; --muted: #646b75; --line: #e3e5e8; --bg: #f6f7f9;
+    --atc: #2a78d6; --pilot: #eb6834; --ground: #12996a; --med: #6b7280;
+    --red: #d64545; --amber: #c98a12; --green: #1f9d55;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 "Segoe UI", system-ui, sans-serif; }
+  nav { display: flex; gap: 4px; padding: 16px 40px; background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; }
+  nav button { flex: 1; border: 0; background: none; padding: 8px 4px; border-bottom: 3px solid var(--line); color: var(--muted); font: 13px inherit; cursor: pointer; text-align: left; }
+  nav button.on { border-color: var(--atc); color: var(--ink); font-weight: 600; }
+  nav button.past { border-color: #9cc3ef; color: var(--ink); }
+  section { display: none; max-width: 1100px; margin: 0 auto; padding: 36px 40px 120px; }
+  section.on { display: block; animation: in .35s ease; }
+  @keyframes in { from { opacity: 0; transform: translateY(8px); } }
+  .kicker { font-size: 13px; font-weight: 600; color: var(--atc); text-transform: uppercase; letter-spacing: 1px; }
+  h2 { font-size: 32px; margin: 4px 0 6px; letter-spacing: -.5px; }
+  .lead { color: var(--muted); font-size: 18px; margin: 0 0 26px; max-width: 760px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  .card h3 { margin: 0 0 8px; font-size: 16px; }
+  code, .mono { font-family: "Cascadia Mono", Consolas, monospace; font-size: 13px; }
+  .msgbox { background: #0f141b; color: #d6dde6; border-radius: 8px; padding: 12px 14px; font: 13px/1.5 "Cascadia Mono", Consolas, monospace; }
+  .fact { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .fact:last-child { border: 0; }
+  .tick { color: var(--green); font-weight: 700; }
+  .big { font-size: 40px; font-weight: 700; letter-spacing: -1px; }
+  .funnel { display: flex; align-items: center; gap: 18px; margin-bottom: 26px; }
+  .funnel .arrow { color: var(--muted); font-size: 26px; }
+  .opt .name { font-weight: 600; }
+  .opt dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; margin: 10px 0 0; font-size: 14px; }
+  .opt dt { color: var(--muted); } .opt dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  .bad { color: var(--red); font-weight: 600; } .good { color: var(--green); font-weight: 600; }
+  .agent { border-top: 4px solid; }
+  .agent.atc { border-color: var(--atc); } .agent.pilot { border-color: var(--pilot); } .agent.ground { border-color: var(--ground); }
+  .sees { font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 6px; padding: 8px 10px; margin: 8px 0 12px; }
+  .tag { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 99px; background: #eef1f5; margin: 2px 4px 2px 0; }
+  .tag.high { background: #fff1db; color: #8a5a00; font-weight: 600; }
+  .quote { border-left: 3px solid var(--line); padding-left: 10px; color: #333; margin: 10px 0 0; font-size: 15px; }
+  .scores { display: grid; grid-template-columns: 140px 1fr; gap: 14px 18px; align-items: center; }
+  .barrow { display: grid; grid-template-columns: 70px 1fr 40px; gap: 8px; align-items: center; font-size: 13px; margin: 3px 0; }
+  .barbg { background: #eef1f5; height: 12px; border-radius: 6px; overflow: hidden; }
+  .bar { height: 100%; border-radius: 6px; }
+  .struck { opacity: .45; }
+  .badge { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 99px; }
+  .badge.win { background: #e3f6ea; color: var(--green); } .badge.out { background: #fde8e8; color: var(--red); }
+  .vote { font-size: 22px; font-weight: 700; color: var(--green); }
+  .banner { background: #e9f7ef; border: 1px solid #b9e4c9; border-radius: 12px; padding: 18px 22px; margin: 22px 0; display: flex; gap: 18px; align-items: center; }
+  .banner .big { color: var(--green); font-size: 30px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+  th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 10px 14px; background: #fafbfc; border-bottom: 1px solid var(--line); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .chg { color: var(--amber); font-weight: 600; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kpi .l { color: var(--muted); font-size: 14px; }
+  .kpi .from { color: var(--muted); text-decoration: line-through; font-size: 18px; margin-right: 6px; }
+  .footer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--line); padding: 14px 40px; display: flex; justify-content: space-between; align-items: center; }
+  .footer button { font: 600 15px inherit; padding: 10px 22px; border-radius: 8px; border: 1px solid var(--line); background: #fff; cursor: pointer; }
+  .footer button.primary { background: var(--atc); color: #fff; border-color: var(--atc); }
+  .small { font-size: 12px; color: var(--muted); }
+  svg text { font: 12px "Segoe UI", sans-serif; fill: var(--muted); }
+</style>
+</head>
+<body>
+<nav id="nav"></nav>
+
+<section>
+  <div class="kicker">Step 1 · The disruption</div>
+  <h2>A runway closes. 7 arrivals are 20 minutes out.</h2>
+  <p class="lead">Charlotte, 1 March 2015. Thunderstorm, 1 mile visibility. Today this is solved by phone calls between the tower, the airline and the ramp.</p>
+  <div class="card" style="margin-bottom:16px">
+    <svg viewBox="0 0 1000 150" width="100%">
+      <rect x="0" y="40" width="1000" height="40" fill="#eef1f5" rx="6"/>
+      <rect x="44" y="40" width="822" height="40" fill="#fde8e8" rx="6"/>
+      <text x="56" y="65" style="fill:#d64545;font-weight:600">RWY 18C/36C closed 14:57-15:34 · one arrival runway left</text>
+      <g id="etas"></g>
+      <text x="0" y="140">14:55</text><text x="430" y="140">15:15</text><text x="960" y="140">15:40</text>
+    </svg>
+    <div class="small">Dots: each flight's ETA. Real flights and delays from the DOT 2015 data.</div>
+  </div>
+  <div class="grid3">
+    <div><div class="small">NOTAM</div><div class="msgbox">!CLT 03/352 CLT RWY 18C/36C CLSD 1503011957-1503012034</div></div>
+    <div><div class="small">METAR</div><div class="msgbox">KCLT 011949Z 16014G28KT 1SM +TSRA BR BKN006 OVC013</div></div>
+    <div><div class="small">Ops note</div><div class="msgbox">Gate D23 is down (fuel hydrant fault). Crew B is short 2 people today.</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">Step 2 · Claude reads the messages</div>
+  <h2>Raw text becomes checked facts.</h2>
+  <p class="lead">Claude extracts the facts. Code then checks each one against the airport data and converts UTC to local time.</p>
+  <div class="card">
+    <div class="fact"><span class="tick">✓</span><div><b>Runway 18C/36C closed 14:57–15:34</b> local<br><span class="small mono">"RWY 18C/36C CLSD 1503011957-1503012034"</span></div></div>
+    <div class="fact"><span class="tick">✓</span><div><b>Gate D23 out of service</b><br><span class="small mono">"gate D23 is down (fuel hydrant fault)"</span></div></div>
+    <div class="fact"><span class="tick">✓</span><div><b>IMC</b> · ceiling 600 ft · visibility 1 SM<br><span class="small mono">METAR</span></div></div>
+    <div class="fact"><span class="tick">✓</span><div><b>All facts match the airport data.</b> Runway and gate exist at CLT.</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">Step 3 · Code builds only safe plans</div>
+  <h2>1,647 plans tried. 3 options go to the agents.</h2>
+  <p class="lead">Every plan keeps wake separation, lands every flight above final reserve fuel, and uses only open, free gates. Unsafe plans never reach the agents.</p>
+  <div class="funnel">
+    <div><div class="big">1,647</div><div class="small">safe plans simulated</div></div><div class="arrow">→</div>
+    <div><div class="big">78</div><div class="small">Pareto-optimal</div></div><div class="arrow">→</div>
+    <div><div class="big">3</div><div class="small">options for the agents</div></div>
+  </div>
+  <div class="grid3">
+    <div class="card opt"><div class="name">A · Fastest flow</div><dl><dt>Total delay</dt><dd>167 min</dd><dt>Missed pax</dt><dd>133</dd><dt>Lowest fuel margin</dt><dd>6 min</dd><dt>Knock-on delay</dt><dd>44 min</dd><dt>Gate changes</dt><dd>2</dd></dl></div>
+    <div class="card opt"><div class="name">B · Protect connections</div><dl><dt>Total delay</dt><dd>191 min</dd><dt>Missed pax</dt><dd>114</dd><dt>Lowest fuel margin</dt><dd class="bad">1 min</dd><dt>Knock-on delay</dt><dd>0 min</dd><dt>Gate changes</dt><dd>3</dd></dl></div>
+    <div class="card opt"><div class="name">C · Max fuel margin</div><dl><dt>Total delay</dt><dd>167 min</dd><dt>Missed pax</dt><dd>120</dd><dt>Lowest fuel margin</dt><dd>7 min</dd><dt>Knock-on delay</dt><dd>28 min</dd><dt>Gate changes</dt><dd>4</dd></dl></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">Step 4 · Turn 1 of 3</div>
+  <h2>Three agents. Three separate calls. Three private views.</h2>
+  <p class="lead">Each agent sees only its own organisation's data. It publishes what matters to it and which options it can accept.</p>
+  <div class="grid3">
+    <div class="card agent atc"><h3>🗼 ATC</h3>
+      <div class="sees">Sees: ETAs, wake categories, runway closure, landing times, holding</div>
+      <span class="tag high">total delay · high</span><span class="tag">max delay · low</span>
+      <p>Prefers <b>A</b>. Accepts A, C, B.</p>
+      <div class="quote">"One runway left in IMC. A clears the bank by 15:27 with the least delay."</div></div>
+    <div class="card agent pilot"><h3>👨‍✈️ Flight Crew</h3>
+      <div class="sees">Sees: fuel above final reserve, passenger connections, holding</div>
+      <span class="tag high">fuel margin · high</span><span class="tag high">missed pax · high</span>
+      <p>Prefers <b>C</b>. Accepts C, A. <span class="bad">Not B.</span></p>
+      <div class="quote">"B leaves US 2002 just 1 minute above our fuel buffer."</div></div>
+    <div class="card agent ground"><h3>🧳 Ground Ops</h3>
+      <div class="sees">Sees: gates, busy windows, crew shift end, next departures</div>
+      <span class="tag high">knock-on · high</span><span class="tag">overtime · low</span><span class="tag">gate changes · low</span>
+      <p>Prefers <b>B</b>. Accepts B, A, C.</p>
+      <div class="quote">"D23 is out and crew B is short. B has no knock-on delay."</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">Step 5 · Mediator (code, no AI)</div>
+  <h2>Pick the option where the worst-off agent does best.</h2>
+  <p class="lead">Scores come from each agent's declared priorities. Options that break a hard rule are removed first.</p>
+  <div class="scores">
+    <div><b>A · Fastest flow</b><br><span class="small">lowest score 6.6</span></div>
+    <div id="sA"></div>
+    <div class="struck"><b>B · Protect connections</b><br><span class="badge out">breaks Pilot fuel buffer</span></div>
+    <div id="sB" class="struck"></div>
+    <div><b>C · Max fuel margin</b><br><span class="badge win">recommended · lowest 6.8</span></div>
+    <div id="sC"></div>
+  </div>
+  <p class="small" style="margin-top:22px">Hard rule relaxed and logged: ground crew overtime 30 → 31 min, because no safe option meets 30. Red lines are never relaxed.</p>
+</section>
+
+<section>
+  <div class="kicker">Step 6 · Turn 2 of 3 · Decision</div>
+  <h2>All three accept. Consensus in turn 2.</h2>
+  <div class="grid3">
+    <div class="card agent atc"><h3>🗼 ATC</h3><div class="vote">✅ ACCEPT C</div><div class="quote">"Same last landing as A."</div></div>
+    <div class="card agent pilot"><h3>👨‍✈️ Flight Crew</h3><div class="vote">✅ ACCEPT C</div><div class="quote">"Every flight 7+ min above final reserve."</div></div>
+    <div class="card agent ground"><h3>🧳 Ground Ops</h3><div class="vote">✅ ACCEPT C</div><div class="quote">"28 min knock-on is manageable."</div></div>
+  </div>
+  <div class="banner"><div class="big">✔</div><div><b style="font-size:20px">Option C · Max fuel margin</b><br><span class="small">Consensus in turn 2 of 3 · 8 API calls · 21 s · fallback not needed · 0 safety violations</span></div></div>
+  <table>
+    <tr><th>Flight</th><th>ETA</th><th>New landing</th><th>Holding</th><th>Gate</th><th>Fuel margin</th></tr>
+    <tr><td>US 1766</td><td>15:03</td><td><b>15:03</b></td><td>0 min</td><td>D28</td><td>+21 min</td></tr>
+    <tr><td>US 2032</td><td>15:07</td><td><b>15:07</b></td><td>0 min</td><td>D27</td><td>+11 min</td></tr>
+    <tr><td>US 1719</td><td>15:09</td><td><b>15:11</b></td><td>2 min</td><td class="chg">D29 (was D28)</td><td>+11 min</td></tr>
+    <tr><td>US 2002</td><td>15:10</td><td><b>15:15</b></td><td>5 min</td><td class="chg">D28 (was D29)</td><td>+7 min</td></tr>
+    <tr><td>US 1999</td><td>15:07</td><td><b>15:19</b></td><td>12 min</td><td class="chg">D22 (was D29)</td><td>+15 min</td></tr>
+    <tr><td>US 1962</td><td>15:17</td><td><b>15:23</b></td><td>6 min</td><td>D29</td><td>+10 min</td></tr>
+    <tr><td>US 1995</td><td>15:13</td><td><b>15:27</b></td><td>14 min</td><td class="chg">D24 (was D28)</td><td>+7 min</td></tr>
+  </table>
+</section>
+
+<section>
+  <div class="kicker">Step 7 · Impact</div>
+  <h2>Versus nobody coordinating.</h2>
+  <p class="lead">Same flights, same safety rules. The baseline lands flights in ETA order and waits for the planned gate.</p>
+  <div class="kpis">
+    <div class="card kpi"><div class="l">Total delay</div><span class="from">296</span><span class="big">167</span> min<div class="good">−44%</div></div>
+    <div class="card kpi"><div class="l">Knock-on departure delay</div><span class="from">96</span><span class="big">28</span> min<div class="good">−71%</div></div>
+    <div class="card kpi"><div class="l">Crew overtime</div><span class="from">55</span><span class="big">31</span> min<div class="good">−44%</div></div>
+    <div class="card kpi"><div class="l">Lowest fuel margin</div><span class="from">3</span><span class="big">7</span> min<div class="good">safer</div></div>
+  </div>
+  <p class="small" style="margin-top:20px">Over all 40 events: see the Results page. Mockup B · numbers from an offline run of the CLT demo event · agent quotes are sample text.</p>
+</section>
+
+<div class="footer">
+  <button onclick="go(cur-1)">← Back</button>
+  <span class="small" id="pos"></span>
+  <button class="primary" onclick="go(cur+1)">Next →</button>
+</div>
+
+<script>
+const titles = ["Disruption", "Read messages", "Safe options", "Turn 1", "Mediator", "Turn 2 + decision", "Impact"];
+const secs = [...document.querySelectorAll("section")];
+const nav = document.getElementById("nav");
+titles.forEach((t, i) => { const b = document.createElement("button"); b.textContent = `${i + 1}. ${t}`; b.onclick = () => go(i); nav.appendChild(b); });
+let cur = 0;
+function go(i) {
+  cur = Math.max(0, Math.min(secs.length - 1, i));
+  secs.forEach((s, j) => s.classList.toggle("on", j === cur));
+  [...nav.children].forEach((b, j) => { b.classList.toggle("on", j === cur); b.classList.toggle("past", j < cur); });
+  document.getElementById("pos").textContent = `${cur + 1} / ${secs.length}`;
+  window.scrollTo(0, 0);
+}
+document.addEventListener("keydown", e => { if (e.key === "ArrowRight") go(cur + 1); if (e.key === "ArrowLeft") go(cur - 1); });
+// ETA dots: 14:55 = x0, 1 min = 1000/45 px
+const etas = [["1766", 8], ["1999", 12], ["2032", 12], ["1719", 14], ["2002", 15], ["1995", 18], ["1962", 22]];
+document.getElementById("etas").innerHTML = etas.map(([f, m], i) =>
+  { const y = [22, 98, 120][i % 3] - (i % 3 === 0 && i ? 12 : 0); return `<circle cx="${m * 22.2}" cy="${y}" r="6" fill="#2a78d6"/><text x="${m * 22.2 + 9}" y="${y + 4}">US ${f}</text>`; }).join("");
+// score bars
+const S = { A: [10, 6.6, 7.1], B: [6.7, 7.1, 9.3], C: [8.3, 9.1, 6.8] };
+const roles = [["ATC", "var(--atc)"], ["Crew", "var(--pilot)"], ["Ground", "var(--ground)"]];
+for (const k in S) document.getElementById("s" + k).innerHTML = S[k].map((v, i) =>
+  `<div class="barrow"><span>${roles[i][0]}</span><div class="barbg"><div class="bar" style="width:${v * 10}%;background:${roles[i][1]}"></div></div><b>${v}</b></div>`).join("");
+go(0);
+</script>
+</body>
+</html>

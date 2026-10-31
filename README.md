@@ -1,63 +1,161 @@
 # Hackathon 2026 — Challenge #2: Multi-Agent ATC Negotiation
 
+Autonomous SG 2026 · AI & Aerospace track · Airbus problem statement #2.
 Python + Streamlit + Claude API.
 
-"How might AI help air traffic controllers, pilots and ground operations staff make faster and better decisions?"
+> "How might AI help air traffic controllers, pilots and ground operations staff make faster and better decisions?"
 
-A runway closes and a bank of 6-8 real arrivals has to be re-planned. The demo splits the work
-between Claude and code:
+## The problem
+
+A runway closes in a thunderstorm while a bank of 6-8 arrivals is 20 minutes out. Someone has to
+decide the landing order and the gates. Today the tower, the airline and the ramp agree on this by
+phone. Each side only sees its own data, so the plan is slow, and it often costs extra holding,
+fuel, missed connections and crew overtime.
+
+**Users:** the airline duty manager and the tower supervisor. The system recommends a plan. A person
+approves it. Nothing is sent to an operational system.
+
+## What it does
+
+Three Claude agents (ATC, Flight Crew, Ground Ops) negotiate a revised landing time and gate for
+every flight in the bank. Each agent is a separate API call and sees only its own organisation's
+data. Code does the safety checks, the scoring and the decision. Claude reads text and writes text.
 
 | Step | Who | What |
 |---|---|---|
-| 1. Read the messages | Claude | Turns a raw NOTAM, METAR and free-text ops note into structured facts. Code then checks every fact against the airport data and converts UTC to local time. |
-| 2. Generate options | Code (`solver.py`) | Simulates ~1,650 landing orders and gate plans. Keeps only safe ones: runway capacity left after the closure (shared with the real traffic that hour), FAA wake separation, final reserve fuel, open and free gates, 20 min gate-change notice. Finds the Pareto front and picks 3-5 representative options. |
-| 3. Negotiate | Claude x3 | ATC, Flight Crew and Ground Ops, each seeing only its own organisation's data. **Mediated (default):** turn 1 declares priorities, positions and optional own plans; a mediator (code) recommends the option where the worst-off agent does best; turn 2 is accept or object. **Vote:** two ranking rounds, with vetoes. |
-| 4. Decide | Code (`negotiate_mediated.py`, `negotiate.py`) | Mediated: consensus if all three accept, else the best option all three called acceptable, else Borda + veto. Vote: Borda count, vetoes remove an option, ties go to the most balanced option. |
-| 5. Brief | Claude | Writes a plain-English decision brief from code-computed comparisons. |
+| 1. Read the messages | Claude | Turns a raw NOTAM, METAR and free-text ops note into structured facts. Code checks every fact against the airport data and converts UTC to local time. |
+| 2. Build safe options | Code (`solver.py`) | Simulates ~1,650 landing orders and gate plans. Keeps only plans that pass the red lines, all from the challenge workbook: the runway capacity left after the closure (shared with the real traffic that hour), FAA wake separation, no landing while every runway is closed, every flight above final reserve fuel (or it diverts), gates open, free and size-compatible, and at least 20 min notice for a gate change. Picks 3-5 options from the Pareto front. |
+| 3. Check rules | Code (`cascade_rules.py`) | Hard rules per role on every option: ATC holding ≤ 30 min, Flight Crew fuel buffer ≥ 5 min above final reserve, Ground crew overtime ≤ 30 min. A rule is relaxed only in a Minimum Fuel emergency or when no option can meet it, and every relaxation is logged. Minimum Fuel is declared by code, not by the model. |
+| 4. Turn 1 | Claude x3, in parallel | Each agent declares its priorities (high / low / none), its preferred and acceptable options, vetoes, an optional own plan, and messages to the other agents. Code simulates and verifies any proposed plan before it can become an option. |
+| 5. Mediate | Code (`mediation.py`) | Scores each option 0-10 per agent from the priorities that agent declared. Drops options that break a hard rule or were vetoed. Recommends the option where the worst-off agent does best. |
+| 6. Turn 2 | Claude x3, in parallel | Each agent sees the others' published positions and votes ACCEPT or OBJECT. |
+| 7. Decide | Code (`negotiate_mediated.py`) | All three accept → consensus. Otherwise a deterministic fallback: the best max-min option all three listed as acceptable, else Borda count + veto. The log says which rule decided and why. |
+| 8. Brief | Claude | Writes a short decision brief from numbers computed by code. |
 
-Every LLM step has a deterministic fallback, so the demo always reaches a safe decision.
+Every Claude step has a deterministic stand-in. If a call fails or returns a bad answer, the
+stand-in is used, the UI labels it, and the run still ends in a safe decision.
 
-**Data.** 40 real disrupted arrival banks at 9 US hubs from the 2015 DOT dataset (flights, times,
-delays, tail numbers, each aircraft's next departure, onward connections, and the real traffic at the
-airport that hour). Every event contains a row that meets the rules of play (WEATHER_DELAY > 15 or
-LATE_AIRCRAFT_DELAY > 20). Aircraft type, gate IDs, passenger counts, the closure and the messages
-are synthetic, derived deterministically, and labelled in the UI.
+### How this maps to the brief
 
-**Constraints.** All operational limits come from the challenge workbook,
-`reference/challenge-2-operational-constraints.xlsx`, read by `workbook.py`: runway capacity,
-gates, spare gates, turnaround, wake separation, fuel and crew rules. Every change or assumption
-we made is listed in `workbook.STATED_CHANGES` and on the app's **Constraints** page, as the rules
-of play require. Replace the workbook file and rebuild (`python build_cascades.py`) to use new limits.
+| Brief asks for | Where |
+|---|---|
+| ATC, Pilot and Ground agents, not one combined prompt | 3 separate calls per turn (`ai_negotiation.py`); the UI labels each bubble "separate Claude call" |
+| Structured messages | Tool-use JSON per agent; every bubble has a "Structured message (JSON)" view |
+| Cross-domain constraints checked explicitly | Red lines in `solver.py` + independent re-check `solver.verify`; hard rules in `cascade_rules.py`; side panel "Cross-domain checks" |
+| Turn limit, no endless loops | 2 agent turns, then code decides. Limit of 3 shown in the UI |
+| Deterministic non-AI fallback | `mediation.resolve_without_consensus`, then `negotiate.decide` (Borda + veto) |
+| Traceable consensus log | Full JSON log per run (download button), including every message, check, score and the decision rule |
+| Output: revised arrival time, gate, flight plan | Per-flight table: ETA → new landing time, holding, gate (changed or not), fuel margin |
 
-**Evaluation.** `evaluate.py` runs all 40 events (278 flights) with deterministic stand-in agents and
-compares both agent processes with a no-coordination baseline and a single-objective optimiser.
-See the Evaluation page.
+## Demo
 
-The original single-flight negotiation (v1) is still available as its own page.
-Its design spec: [`.plans/atc-multiagent-negotiation-spec.md`](.plans/atc-multiagent-negotiation-spec.md).
+```powershell
+streamlit run app.py
+```
+
+1. **Negotiation room** (default page). Pick a ★ event and click **Run**. The negotiation appears as
+   a chat. The side panel shows the turn limit, who can accept which option, the checks and the
+   decision. At the bottom: the recommended plan, an **Approve** button for the duty manager, and
+   the log download.
+2. Open **Incoming messages and flights** and edit the ops note (for example, close a second gate)
+   to change the situation.
+3. Switch **Claude agents** off to run with the deterministic stand-ins. No API cost.
+4. **Results (40 events)** shows the evaluation. **Full detail** shows every step as tables.
+   **Constraints** shows every workbook limit used and every change we made.
+
+URL options: `?autorun=1` starts the run on page load; `&agents=0` starts with the agents off.
+
+A live run takes 8 API calls (1 intake, 3 + 3 agents, 1 brief), about 15-60 s, about $0.05 with
+Claude Haiku 4.5.
+
+## Evaluation
+
+`evaluate.py` runs all 40 events (278 real flights, 9 US hubs) with the deterministic stand-in
+agents, so the numbers are reproducible. Averages per event:
+
+| Method | Total delay (min) | Knock-on departure delay (min) | Crew overtime (min) | Missed connections (pax) | Lowest fuel margin (min) | Gate changes |
+|---|---|---|---|---|---|---|
+| No coordination (land in ETA order, wait for planned gate) | 106 | 117 | 31 | 75 | 7.0 | 1.0 |
+| Min-delay optimiser (one objective) | 45 | 66 | 0 | 43 | 6.5 | 2.6 |
+| **Mediated negotiation (demo default)** | **46** | **65** | **0** | **40** | **6.3** | **2.4** |
+
+All limits come from the challenge constraints workbook (see Constraints below).
+
+- 0 safety violations across every option and baseline (independent re-check).
+- Against no coordination, the mediated outcome has less total delay in 36 of 40 events and is
+  never worse (-56% on average), with 47% fewer missed connections and no crew overtime. It needs
+  more gate changes in 34 of 40 events: that is the price of re-planning.
+- Against the min-delay optimiser it accepts about 1.4 min more total delay for about 3.6 fewer
+  missed connections per event.
+- 12 of 40 events trigger an automatic Minimum Fuel emergency. In 5 events even the best safe
+  plan diverts one flight for fuel (no coordination: 7 events).
+- With stand-in agents the mediated process reaches consensus in 39 of 40 events; the stand-ins
+  accept whatever the mediator recommends, so this says nothing about live Claude agents.
+- Live Claude runs on 6 events (vote process): intake read all 6 message sets correctly; 8 calls
+  and about 17 s per run; the Claude agents chose the same option as the stand-ins in 1 of 6.
+
+### Where it fails, and how the user knows
+
+- **Agents misread numbers.** In one live CLT run, ATC called 51 min "max holding" when 51 min was
+  the maximum delay. The decision does not depend on this: scores, checks and the decision are
+  computed by code, and the UI says the tables are the source of truth.
+- **No consensus.** In another live CLT run, Flight Crew and Ground Ops objected to the
+  recommendation. Code fell back to the best option all three had called acceptable. The chat shows
+  the objections and the fallback rule.
+- **A failed or malformed call** is replaced by the deterministic stand-in and labelled
+  "⚠ deterministic stand-in" in the chat.
+- **No option meets a hard rule.** The rule is relaxed to the best possible value and the UI shows a
+  "Hard rule relaxed and logged" warning. With the workbook limits this happens in none of the 40
+  events today, but the code path is tested.
+- **No plan avoids a diversion.** In 5 of 40 events the runway capacity left is too low for every
+  flight's fuel. The plan shows the diversion, and Minimum Fuel puts the Flight Crew first.
+
+### Limits and assumptions
+
+- Real (DOT 2015): flights, times, delays, tail numbers, each aircraft's next departure, onward
+  connections.
+- Synthetic, derived deterministically and labelled in the UI: aircraft type, gate IDs, passenger
+  counts, and the NOTAM / METAR / ops note texts.
+- **Constraints:** every operational limit comes from the organisers' constraints workbook: per
+  airport runways, max runway ops per hour, gates, spare gates and turnaround; FAA wake separation;
+  fuel and crew rules. `workbook.py` reads it. The workbook file itself stays local and git-ignored
+  (this repo is public); `reference/constraints_extract.json` holds only the values the app uses, so a
+  fresh clone runs. Put the workbook in `reference/` and run `python workbook.py` to refresh it.
+- **Stated changes:** where the workbook leaves a gap, or we add a limit, it is listed in
+  `workbook.STATED_CHANGES` and on the app's Constraints page, as the rules of play require. Main
+  ones: wake distance converted at 140 kt; capacity shared with the real traffic that hour; "45 min
+  spare fuel" read as including the 30 min reserve; crew duty not modelled (no crew data).
+- Input: each of the 40 arrival banks contains at least one `flights.csv` row that meets the rules of
+  play (WEATHER_DELAY > 15 or LATE_AIRCRAFT_DELAY > 20); the page names it. The runway closure that
+  extends it into a cascade is synthetic.
+- Only the hub carrier's arrivals are modelled. Other traffic on the runway is not.
+- The evaluation uses stand-in agents. Only 6 events were run with Claude.
+- Not for operational use.
 
 ## Files
 
 | File | What it does |
 |---|---|
 | `app.py` | Streamlit entry point (page router) |
-| `views/cascade.py` | Main demo page: runway closure cascade |
-| `views/evaluation.py` | Evaluation results page |
-| `views/single_flight.py` | v1 single-flight negotiation page |
-| `views/balanced_negotiation.py`, `orchestrator_balanced.py`, `agents_balanced.py`, `balancer.py`, `rules.py`, `scoring.py`, `compare.py` | Balanced negotiation: parallel proposals + mediator (design: `.plans/balanced-negotiation-design.md`) |
-| `ai.py`, `ai_negotiation.py` | Claude calls for the cascade: intake, agent positions and rankings, decision brief |
-| `negotiate_mediated.py`, `mediation.py`, `cascade_rules.py` | Mediated process: rule tiers, mediator recommendation, two agent turns (design: `.plans/cascade-negotiation-design.md`) |
+| `views/demo.py` | **Main demo page: Negotiation room** (chat view of the mediated negotiation) |
+| `views/evaluation.py` | Results page (40 events) |
+| `views/cascade.py` | Full detail page: every step as tables, and the vote process |
+| `views/single_flight.py`, `views/balanced_negotiation.py` | Earlier versions (single flight) |
+| `ai.py`, `ai_negotiation.py` | All Claude calls for the cascade: intake, agent positions and votes, decision brief |
+| `negotiate_mediated.py`, `mediation.py`, `cascade_rules.py` | Mediated process: rule tiers, mediator, two agent turns, decision (design: `.plans/cascade-negotiation-design.md`) |
 | `solver.py` | Deterministic plan generator, Pareto front, independent safety check |
 | `negotiate.py` | Vote process and shared pipeline pieces |
 | `charts.py` | Altair charts |
-| `workbook.py`, `reference/` | The challenge constraints workbook and the code that reads it; the stated changes |
+| `workbook.py`, `reference/constraints_extract.json` | Reads the challenge constraints workbook (or its committed extract); the stated changes |
 | `views/operational_constraints.py` | Constraints page: every workbook limit used and every change we made |
 | `reference_data.py` | Aircraft types, fleets, airport runway names and time zones (not limits) |
 | `build_cascades.py` | Builds `events/cascades.json` from `data/flights.csv` (run once) |
 | `evaluate.py` | Evaluation harness, writes `events/evaluation_results.json` |
 | `events/` | Committed event and evaluation data, so the app runs without the raw dataset |
-| `agents.py`, `orchestrator.py`, `constraints.py`, `mediator.py`, `fallback.py`, `scenario.py`, `log_render.py` | v1 single-flight negotiation |
-| `benchmark.py` | v1 benchmark |
+| `mockups/` | Three HTML design drafts for the demo page (C was chosen) |
+| `.streamlit/config.toml` | App theme |
+| `orchestrator_balanced.py`, `agents_balanced.py`, `balancer.py`, `rules.py`, `scoring.py`, `compare.py` | Earlier version: balanced negotiation (design: `.plans/balanced-negotiation-design.md`) |
+| `agents.py`, `orchestrator.py`, `constraints.py`, `mediator.py`, `fallback.py`, `scenario.py`, `log_render.py`, `benchmark.py` | Earlier version: v1 single-flight negotiation (design: `.plans/atc-multiagent-negotiation-spec.md`) |
 | `test_api.py` | Checks that your API key works |
 | `tests/` | Offline unit tests (`python -m pytest`) |
 | `setup.ps1` | One-click first-time setup |
@@ -89,13 +187,15 @@ python -m pytest        # offline unit tests, no API calls (add -m slow for the 
 streamlit run app.py    # open the web app
 ```
 
-Pick a ★ event and click **Run**. Try editing the ops note first, e.g. close a second gate. Save your code, then click **Rerun** at the top right of the web page to see changes.
+Save your code, then click **Rerun** at the top right of the web page to see changes.
 
 ## Working together
 
 - Before you start: `git pull`. When done: `git add .` → `git commit -m "what you did"` → `git push`
 - See `CLAUDE.md` for the Ownership split once it's filled in.
 - Send the API key by private message. **Never put it in code.**
+- The challenge data files and PDF (`flights.csv`, `airlines.csv`, `airports.csv`,
+  `challenge2_operational_constraints.xlsx`, `*.pdf`) are git-ignored. Keep them local.
 
 ## Rebuilding the data (optional)
 
@@ -107,4 +207,4 @@ python evaluate.py --agents 6 # also run the Claude pipeline on 6 events
 
 ## Changing the model
 
-`MODEL` in `agents.py` is currently `claude-haiku-4-5-20251001` (fast/cheap). `ai.py` uses the same model. A stronger model should reason better about the numbers. Note: Claude Opus 5.5, Sonnet 5.5 and Fable 5.1 reject the forced `tool_choice` these files use, so switching to them needs `tool_choice: auto` plus `strict: true` tools. Run `python -m pytest` and one live run after any switch.
+`MODEL` in `agents.py` is currently `claude-haiku-4-5-20251001` (fast and cheap). `ai.py` uses the same model. A stronger model should reason better about the numbers. Note: Claude Opus 5.5, Sonnet 5.5 and Fable 5.1 reject the forced `tool_choice` these files use, so switching to them needs `tool_choice: auto` plus `strict: true` tools. Run `python -m pytest` and one live run after any switch.
