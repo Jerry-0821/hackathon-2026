@@ -79,7 +79,7 @@ with st.expander("Flights in this bank", expanded=False):
 
 use_llm = st.toggle("Use Claude agents", value=True,
                     help="Off: deterministic stand-ins for every LLM step. No API cost, same safety guarantees.")
-PROCESSES = {"mediated": "Negotiate to consensus (mediator recommends, all three must accept)",
+PROCESSES = {"mediated": "Negotiate to consensus in 2 turns (mediator recommends, all three must accept)",
              "vote": "Vote once (two ranking rounds, Borda + veto)"}
 process = st.radio("Decision process", list(PROCESSES), format_func=PROCESSES.get, horizontal=True)
 
@@ -87,8 +87,11 @@ if st.button("Run", type="primary"):
     steps = {}
     with st.status("Working...", expanded=True) as status:
         labels = {"intake": "Read the messages", "options": "Generated safe options",
-                  "round": "Agents ranked the options", "decision": "Applied the voting rule",
-                  "opening": "Agents stated their opening positions",
+                  "round": "Agents ranked the options", "decision": "Made the decision",
+                  "rules": "Checked hard rules and fuel state",
+                  "opening": "Turn 1: agents declared priorities, positions and plans",
+                  "recommendation": "Mediator made a recommendation",
+                  "responses": "Turn 2: agents accepted or objected",
                   "brief": "Wrote the decision brief"}
         pipeline = negotiate_mediated.run if process == "mediated" else negotiate.run
         for ev in pipeline(event, texts, use_llm=use_llm):
@@ -96,10 +99,6 @@ if st.button("Run", type="primary"):
             if t == "round":
                 steps[f"round{ev['round']}"] = ev
                 st.write(f"Round {ev['round']}: agents ranked the options")
-            elif t == "mediation_round":
-                steps[f"mround{ev['round']}"] = ev
-                st.write(f"Round {ev['round']}: mediator recommended {ev['recommendation']['option']}, "
-                         + ("all three accepted" if ev["consensus"] else "no consensus yet"))
             else:
                 steps[t] = ev
                 if t in labels:
@@ -114,7 +113,8 @@ if not result or result["event_id"] != event_id or result.get("process", "vote")
 
 steps = result["steps"]
 intake, opts, decision, brief = steps["intake"], steps["options"], steps["decision"], steps["brief"]
-options, baseline = opts["options"], opts["baseline"]
+# The mediated process can add options proposed by the agents; "done" carries the final list.
+options, baseline = steps["done"]["options"], opts["baseline"]
 winner = next(o for o in options if o["id"] == decision["winner"])
 d = intake["disruption"]
 
@@ -178,6 +178,11 @@ def _position_card(col, role: str, p: dict, vote: str | None = None) -> None:
         st.markdown(f"{ROLE_ICON[role]} **{ai.ROLE_NAMES[role]}**{badge}"
                     + (" · deterministic stand-in" if p["source"] != "llm" else ""))
         st.markdown(f"Prefers **{p['ranking'][0]}** · can accept: {', '.join(p.get('acceptable', [])) or '-'}")
+        if p.get("priorities"):
+            st.caption("Declared priorities: " + ", ".join(f"{k.replace('_', ' ')} **{v}**" for k, v in p["priorities"].items()))
+        if p.get("proposal"):
+            st.caption(f"Proposed plan: land {' → '.join(p['proposal']['landing_order'])} "
+                       f"(gates: {p['proposal']['gate_policy']})")
         for v in p["vetoes"]:
             st.error(f"Vetoes {v['option']}: {v['reason']}")
         if p["argument"]:
@@ -185,54 +190,75 @@ def _position_card(col, role: str, p: dict, vote: str | None = None) -> None:
 
 
 if process == "mediated":
-    st.subheader("4. Agents negotiate, the mediator recommends")
-    st.caption("Mediator = code, no LLM. It scores every option 0-10 for each agent from that agent's objectives "
-               "(10 = best of these options for them), skips options someone vetoed or the agents already "
-               "rejected, prefers options every agent said it can accept, and recommends the one where the "
-               "worst-off agent scores highest. The result only stands if all three agents ACCEPT.")
-    table = mediation.score_table(steps["done"]["log"]["steps"]["scores"])
-    st.dataframe(pd.DataFrame([{"Option": o["id"], "Name": o["name"],
-                                **{ai.ROLE_NAMES[r]: table[o["id"]][r] for r in negotiate.ROLES},
-                                "Lowest score": min(table[o["id"]].values())} for o in options]),
-                 hide_index=True, use_container_width=True)
+    rules_step, opening, rec, responses = steps["rules"], steps["opening"], steps["recommendation"], steps["responses"]
+    hard = opening["hard"]
 
-    opening = steps["opening"]
-    st.markdown("**Opening positions** - all three at the same time, nobody speaks first")
+    st.subheader("4. Rules: red lines, hard rules, soft preferences")
+    if rules_step["emergency"]:
+        e = rules_step["emergency"]
+        st.error(f"🚨 MINIMUM FUEL declared automatically for {', '.join(e['flights'])}: {e['reason']}. "
+                 "The mediator puts the Flight Crew first. Red lines are unchanged.")
+    rcol, hcol = st.columns(2)
+    with rcol:
+        st.markdown("**🔴 Red lines** - never relaxed, built into every option by code")
+        for line in rules_step["red_lines"]:
+            st.caption(f"• {line}")
+    with hcol:
+        st.markdown("**🟠 Hard rules** - checked by code on every option")
+        for r in hard["limits"]:
+            st.caption(f"• {ai.ROLE_NAMES[r['role']]}: {r['description']} "
+                       f"{'≤' if r['kind'] == 'max' else '≥'} {r['limit']}")
+        for r in hard["relaxed"]:
+            st.warning(f"Relaxed: {ai.ROLE_NAMES[r['role']]} {r['description']} → {r['to']} ({r['reason']})")
+    st.caption("🟢 Soft preferences: each agent's own metrics, weighted by the priorities it declares in turn 1.")
+
+    st.subheader("5. Turn 1 - every agent publishes its position at the same time")
+    st.caption("Each agent only sees its own organisation's data. It declares priorities (high / low / none), "
+               "preferred and acceptable options, vetoes, and may propose its own landing order.")
     for w in opening["warnings"]:
         st.warning(w)
     for col, role in zip(st.columns(3), negotiate.ROLES):
         _position_card(col, role, opening["positions"][role])
     for m in opening["messages"]:
         st.markdown(_message_line(m))
+    for p in opening["plans"]:
+        msg = f"{ai.ROLE_NAMES[p['by']]}'s plan: {p['result']}" + (f" (option {p['option']})" if p.get("option") else "")
+        (st.success if p["result"] == "added" else st.info)(msg + (f" - {p['detail']}" if p.get("detail") else ""))
 
-    rnd = 1
-    while f"mround{rnd}" in steps:
-        r = steps[f"mround{rnd}"]
-        rec = r["recommendation"]
-        st.markdown(f"**Round {rnd}** - mediator recommends **{rec['option']}** "
-                    f"(scores: {', '.join(f'{ai.ROLE_NAMES[k]} {v}' for k, v in rec['scores'].items())}"
-                    + ("; acceptable to all three" if rec["acceptable_to_all"] else "") + ")")
-        for n in rec["notes"]:
-            st.caption(n)
-        for w in r["warnings"]:
-            st.warning(w)
-        for col, role in zip(st.columns(3), negotiate.ROLES):
-            _position_card(col, role, r["votes"][role], r["votes"][role].get("vote"))
-        for m in r["messages"]:
-            st.markdown(_message_line(m))
-        (st.success if r["consensus"] else st.warning)(
-            f"Round {rnd}: " + ("all three accepted - consensus." if r["consensus"]
-                                else f"no consensus, option {rec['option']} is set aside for the next round."))
-        rnd += 1
+    st.subheader("6. Mediator recommends (code, no LLM)")
+    st.caption("Scores 0-10 per agent from that agent's declared priorities (10 = best of these options for them). "
+               "Skips options that break a hard rule or were vetoed, prefers options all three can accept, and "
+               "recommends the one where the worst-off agent scores highest.")
+    table = mediation.score_table(opening["scores"])
+    st.dataframe(pd.DataFrame([{"Option": o["id"], "Name": o["name"],
+                                **{ai.ROLE_NAMES[r]: table[o["id"]][r] for r in negotiate.ROLES},
+                                "Lowest score": min(table[o["id"]].values()),
+                                "Breaks hard rule": "; ".join(v["detail"] for v in hard["violations"].get(o["id"], [])) or "-"}
+                               for o in options]), hide_index=True, use_container_width=True)
+    st.markdown(f"Recommendation: **{rec['option']}** ({rec['rule']}) - scores "
+                + ", ".join(f"{ai.ROLE_NAMES[k]} {v}" for k, v in rec["scores"].items())
+                + ("; acceptable to all three" if rec["acceptable_to_all"] else ""))
+    for n in rec["notes"]:
+        st.caption(n)
+
+    st.subheader("7. Turn 2 - accept or object (last turn)")
+    for w in responses["warnings"]:
+        st.warning(w)
+    for col, role in zip(st.columns(3), negotiate.ROLES):
+        _position_card(col, role, responses["votes"][role], responses["votes"][role].get("vote"))
+    for m in responses["messages"]:
+        st.markdown(_message_line(m))
     st.caption("Agents can misread numbers. The tables above are computed by code and are the source of truth.")
 
-    st.subheader("5. Decision")
+    st.subheader("8. Decision")
     wm = winner["metrics"]
     if decision["method"] == "consensus":
-        how = f"all three agents accepted it in round {decision['consensus_round']}"
+        how = "all three agents accepted it in turn 2"
+    elif decision["method"] == "mediator_fallback":
+        how = (f"{', '.join(ai.ROLE_NAMES[r] for r in decision['objected_by'])} objected, so code chose the best "
+               f"balanced option all three listed as acceptable ({', '.join(decision['fallback_pool'])})")
     else:
-        how = (f"no consensus after {negotiate_mediated.MAX_ROUNDS} rounds, so the deterministic fallback "
-               "(Borda + veto over the final rankings) chose it")
+        how = "no option was acceptable to all three, so the deterministic fallback (Borda + veto) chose it"
     st.success(f"**Option {winner['id']} - {winner['name']}**: {how}. Scores: "
                + ", ".join(f"{ai.ROLE_NAMES[k]} {v}" for k, v in decision["scores"].items()) + ". "
                f"{wm['diversions']} diversions · {wm['total_delay_min']} min total delay "
@@ -281,7 +307,7 @@ st.markdown("**Decision brief**" + ("" if brief["source"] == "llm" else f" ({bri
 st.info(brief["text"])
 
 # ---------------------------------------------------------------------------
-st.subheader("6. The plan")
+st.subheader(f"{9 if process == 'mediated' else 6}. The plan")
 which = st.radio("Show", [f"Chosen option {winner['id']}", "No-coordination baseline"], horizontal=True)
 plan = winner if which.startswith("Chosen") else baseline
 problem = opts["problem"]

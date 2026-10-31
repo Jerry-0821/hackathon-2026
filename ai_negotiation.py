@@ -1,13 +1,15 @@
-"""Claude calls for the mediated negotiation (negotiate_mediated.py).
+"""Claude calls for the mediated cascade negotiation (negotiate_mediated.py).
+Design: .plans/cascade-negotiation-design.md
 
-Reuses ai.py: the API call wrapper, each role's priorities, the per-role option view (each agent
-only sees per-flight detail for its own domain), the code-computed best-per-metric table, and
-ranking repair. Each call is one independent API request per agent.
+Each agent only sees its own organisation's data (private_view, my_option_view) plus the shared
+safety outcome (diversions), the mediator's scores and its own hard-rule check per option, which code
+computes. Reuses ai.py: the API call wrapper, role prompts, role names, ranking repair.
 
-Two calls per agent:
-- open_position(): round 1 - preferred option, acceptable options, vetoes, messages to others.
-- respond():       every round - ACCEPT or OBJECT to the mediator's recommendation, reply to the
-                   messages addressed to you, update what you can accept.
+Two calls per agent, one independent API request each, all three agents at the same time:
+- open_position(): turn 1 - declare priorities, preferred / acceptable options, vetoes, an optional
+  own plan (landing order + gate policy), and messages to the other agents.
+- respond():       turn 2 - ACCEPT or OBJECT to the mediator's recommendation, after seeing every
+  agent's published declaration, the plans they added and the messages.
 """
 
 from __future__ import annotations
@@ -15,84 +17,149 @@ from __future__ import annotations
 import json
 
 import ai
+import cascade_rules
 import mediation
+import solver
 
 MESSAGE_TYPES = ["request", "offer", "concession", "reject"]
 
-NEGOTIATE_TOOL = {
-    "name": "submit_position",
-    "description": "Submit your position in the negotiation.",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "vote": {"type": "string", "enum": ["ACCEPT", "OBJECT"],
-                     "description": "Only when a recommendation is given: ACCEPT or OBJECT to it."},
-            "ranking": {"type": "array", "items": {"type": "string"},
-                        "description": "Every option ID exactly once, best first for your role."},
-            "acceptable": {"type": "array", "items": {"type": "string"},
-                           "description": "Option IDs you can live with, even if not your favourite."},
-            "vetoes": {"type": "array",
-                       "description": "Options you truly cannot accept, with a reason that cites a number. Usually empty.",
-                       "items": {"type": "object",
-                                 "properties": {"option": {"type": "string"}, "reason": {"type": "string"}},
-                                 "required": ["option", "reason"]}},
-            "messages": {"type": "array",
-                         "description": "What you say to the other agents. One to three short messages.",
-                         "items": {"type": "object",
-                                   "properties": {
-                                       "to": {"type": "string", "enum": ["atc", "pilot", "ground", "all"]},
-                                       "type": {"type": "string", "enum": MESSAGE_TYPES},
-                                       "text": {"type": "string", "description": "One plain sentence with a number."},
-                                   },
-                                   "required": ["to", "type", "text"]}},
-            "argument": {"type": "string", "description": "Two plain sentences. Cite the numbers behind your position."},
-        },
-        "required": ["ranking", "acceptable", "vetoes", "messages", "argument"],
-    },
+# Shared by every role: diversions are a safety outcome everyone must see.
+OWN_SUMMARY = {
+    "atc": ["diversions", "total_delay_min", "max_delay_min", "last_landing"],
+    "pilot": ["diversions", "min_fuel_margin_min", "pax_missed"],
+    "ground": ["diversions", "gate_changes", "gate_wait_min", "downstream_delay_min", "crew_overtime_min"],
 }
 
 PROTOCOL = (
-    " Every option has already passed a deterministic safety check, so you are negotiating "
-    "trade-offs, not safety. This is a negotiation, not a vote: a neutral mediator (code, not AI) "
-    "scores every option 0-10 for each agent and recommends the option where the worst-off agent "
-    "does best. The result only stands if all three agents ACCEPT. Rules: "
-    "(1) answer every request addressed to you - accept it or say why not; "
-    "(2) if you OBJECT, say in a message which option you would accept instead, or what would "
-    "change your mind; (3) never give up a real limit, but trade your preferences; "
-    "(4) move toward what the others need unless it breaks one of your limits. "
-    "Message types: request (what you need from someone), offer (if you do X I accept Y), "
-    "concession (a preference you give up), reject (you cannot accept something - cite a number). "
-    "Use the submit_position tool."
+    " You work for a different organisation from the other two agents and only see your own data. "
+    "Every option already respects the red lines (separation, final reserve fuel, gate availability), "
+    "checked by code. Hard rules (holding, company fuel buffer, crew overtime) are checked by code for "
+    "you in breaks_my_hard_rules. A neutral mediator (code, not AI) scores every option 0-10 for each "
+    "agent using the priorities each agent declares, and recommends the option where the worst-off "
+    "agent does best. The result only stands if all three agents ACCEPT, and there are only two turns. "
+    "Rules: (1) declare your priorities honestly - 'high' only for what really matters to you; "
+    "(2) answer every request addressed to you; (3) never give up a hard rule, but trade preferences; "
+    "(4) if you OBJECT, say which option you would accept instead. Use the submit_position tool."
 )
+
+
+def private_view(role: str, event: dict, disruption: dict, problem: dict) -> dict:
+    """Only this role's own operational data."""
+    if role == "atc":
+        return {"arrival_runways": event["arrival_runways"], "flight_rules": disruption["flight_rules"],
+                "runway_closures": [{"runway": c["runway"], "from": solver.hhmm(c["start_min"]),
+                                     "to": solver.hhmm(c["end_min"])} for c in disruption["runway_closures"]],
+                "flights": [{"flight": f["id"], "eta": f["eta"], "wake": f["wake"]} for f in event["flights"]]}
+    if role == "pilot":
+        return {"flights": [{"flight": f["id"], "eta": f["eta"], "fuel_above_final_reserve_min": f["extra_fuel_min"],
+                             "onward_connections": [{"flight": c["flight"], "departure": c["departure"], "pax": c["pax"]}
+                                                    for c in f["connections"]]} for f in event["flights"]]}
+    return {"crew_shift_end": solver.hhmm(event["crew_shift_end_min"]),
+            "gates": [{"gate": g["id"], "widebody": g["widebody"],
+                       "busy": [f"{solver.hhmm(s)}-{solver.hhmm(e)}" for s, e in problem["busy"].get(g["id"], [])]}
+                      for g in problem["gates"]],
+            "gates_out_of_service": problem["gates_out"],
+            "flights": [{"flight": f["id"], "planned_gate": f["preferred_gate"], "widebody": f["widebody"],
+                         "aircraft_next_departure": (f"{f['next_departure']['flight']} {f['next_departure']['departure']}"
+                                                     if f["next_departure"] else None)} for f in event["flights"]]}
+
+
+def my_option_view(role: str, opt: dict) -> dict:
+    view = ai._option_view(role, opt)  # per-flight detail is already role-specific
+    view["summary"] = {k: opt["metrics"][k] for k in OWN_SUMMARY[role]}
+    if opt.get("proposed_by"):
+        view["proposed_by"] = ai.ROLE_NAMES[opt["proposed_by"]]
+    return view
+
+
+def tool_for(role: str) -> dict:
+    priority_fields = {
+        f"priority_{m}": {"type": "string", "enum": list(mediation.PRIORITY_WEIGHT),
+                          "description": f"How much {m} matters to you (feeds the mediator's weights)."}
+        for m, _, _ in mediation.ROLE_METRICS[role]
+    }
+    return {
+        "name": "submit_position",
+        "description": "Submit your position in the negotiation.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "vote": {"type": "string", "enum": ["ACCEPT", "OBJECT"],
+                         "description": "Turn 2 only: ACCEPT or OBJECT to the mediator's recommendation."},
+                **priority_fields,
+                "ranking": {"type": "array", "items": {"type": "string"},
+                            "description": "Every option ID exactly once, best first for your role."},
+                "acceptable": {"type": "array", "items": {"type": "string"},
+                               "description": "Option IDs you can live with, even if not your favourite."},
+                "vetoes": {"type": "array",
+                           "description": "Options you truly cannot accept, with a reason that cites a number. Usually empty.",
+                           "items": {"type": "object",
+                                     "properties": {"option": {"type": "string"}, "reason": {"type": "string"}},
+                                     "required": ["option", "reason"]}},
+                "proposed_landing_order": {"type": "array", "items": {"type": "string"},
+                                           "description": "Turn 1, optional: your own plan as a landing order of "
+                                                          "flight IDs. Code checks it; if safe it becomes a new option."},
+                "proposed_gate_policy": {"type": "string", "enum": ["keep", "flex"],
+                                         "description": "For your plan: keep = wait up to 20 min for planned gates, "
+                                                        "flex = take the first free gate."},
+                "messages": {"type": "array",
+                             "description": "What you say to the other agents. One to three short messages.",
+                             "items": {"type": "object",
+                                       "properties": {
+                                           "to": {"type": "string", "enum": ["atc", "pilot", "ground", "all"]},
+                                           "type": {"type": "string", "enum": MESSAGE_TYPES},
+                                           "text": {"type": "string", "description": "One plain sentence with a number."},
+                                       },
+                                       "required": ["to", "type", "text"]}},
+                "argument": {"type": "string", "description": "Two plain sentences. Cite the numbers behind your position."},
+            },
+            "required": ["ranking", "acceptable", "vetoes", "messages", "argument", *priority_fields],
+        },
+    }
 
 
 def _system(role: str) -> str:
     return ai.ROLE_PROMPTS[role].replace(ai._COMMON, "") + PROTOCOL
 
 
-def _payload(round_no: int, role: str, event: dict, disruption: dict, options: list[dict], scores: dict) -> dict:
+def _payload(turn: int, role: str, ctx: dict) -> dict:
+    options = ctx["options"]
+    own_keys = OWN_SUMMARY[role]
     return {
-        "round": round_no,
+        "turn": turn,
         "you_are": ai.ROLE_NAMES[role],
-        "airport": event["airport"],
-        "situation": disruption.get("summary") or "One arrival runway closed; see options.",
-        "flight_rules": disruption["flight_rules"],
+        "airport": ctx["event"]["airport"],
+        "situation": ctx["disruption"].get("summary") or "One arrival runway closed; see options.",
+        "your_private_data": private_view(role, ctx["event"], ctx["disruption"], ctx["problem"]),
+        "emergency": ctx.get("emergency"),
         # Each role sees the options in a different order, so no option gains from being listed first.
-        "options": [ai._option_view(role, o) for o in ai._rotate(options, ai.ROLE_ORDER_SHIFT[role])],
-        "best_option_per_metric": ai.best_per_metric(options),
-        "mediator_scores": mediation.score_table(scores),
+        "options": [my_option_view(role, o) for o in ai._rotate(options, ai.ROLE_ORDER_SHIFT[role])],
+        "best_option_per_metric": {k: v for k, v in ai.best_per_metric(options).items() if k in own_keys},
+        "your_hard_rules": cascade_rules.checks_for(role, ctx["hard"]),
+        "mediator_scores": mediation.score_table(ctx["scores"]),
         "scoring_rule": {
-            "how": "10 = best of these options for that agent, 0 = worst. Computed by code from the metrics.",
-            "weights": {ai.ROLE_NAMES[r]: {k: w for k, w, _ in m} for r, m in mediation.ROLE_METRICS.items()},
+            "how": "10 = best of these options for that agent, 0 = worst, from that agent's declared priorities.",
+            "priority_weights": mediation.PRIORITY_WEIGHT,
+            "diversions_weight": mediation.DIVERSION_WEIGHT,
             "acceptable_if_at_least": mediation.ACCEPT_MIN_SCORE,
         },
-        "note": "best_option_per_metric and mediator_scores are computed by code and are correct. Cite them.",
+        "note": "Numbers in best_option_per_metric, your_hard_rules and mediator_scores are computed by code and correct.",
     }
 
 
-def _clean(raw: dict, ids: list[str], role: str) -> dict:
+def _clean(raw: dict, ids: list[str], role: str, flight_ids: list[str]) -> dict:
     p = ai._clean_position(raw, ids)  # repairs ranking, keeps valid vetoes
     p["acceptable"] = [i for i in (str(x).strip().upper()[:1] for x in raw.get("acceptable") or []) if i in ids]
+    p["priorities"] = {m: raw[f"priority_{m}"] for m, _, _ in mediation.ROLE_METRICS[role]
+                       if raw.get(f"priority_{m}") in mediation.PRIORITY_WEIGHT}
+    # Models write "DL1183" or "dl 1183" for "DL 1183": match flight IDs ignoring spaces and case.
+    known = {f.replace(" ", "").upper(): f for f in flight_ids}
+    order = [known.get(str(x).replace(" ", "").upper(), str(x).strip()) for x in raw.get("proposed_landing_order") or []]
+    p["proposal"] = ({"landing_order": order,
+                      "gate_policy": raw.get("proposed_gate_policy") if raw.get("proposed_gate_policy") in ("keep", "flex") else "keep"}
+                     if order and sorted(order) == sorted(flight_ids) else None)
+    if order and not p["proposal"]:
+        p["proposal_rejected"] = "landing order must list every flight in this bank exactly once"
     p["messages"] = [
         {"from": role, "to": m.get("to") if m.get("to") in ("atc", "pilot", "ground", "all") else "all",
          "type": m.get("type") if m.get("type") in MESSAGE_TYPES else "request",
@@ -104,36 +171,38 @@ def _clean(raw: dict, ids: list[str], role: str) -> dict:
     return p
 
 
-def open_position(role: str, event: dict, disruption: dict, options: list[dict], scores: dict) -> tuple[dict, dict]:
-    payload = _payload(1, role, event, disruption, options, scores)
-    payload["instruction"] = ("Opening position. State your preferred option, every option you could accept, "
-                              "and what you need from the other agents.")
+def open_position(role: str, ctx: dict) -> tuple[dict, dict]:
+    payload = _payload(1, role, ctx)
+    payload["instruction"] = ("Turn 1 of 2. Declare your priorities, your preferred option, every option you could "
+                              "accept, and what you need from the other agents. If no option fits, propose your own "
+                              "landing order - code will check it and add it if it is safe.")
     raw, perf = ai._call(ai.ROLE_NAMES[role], system=_system(role), user=json.dumps(payload, indent=1),
-                         tool=NEGOTIATE_TOOL)
-    return _clean(raw, [o["id"] for o in options], role), perf
+                         tool=tool_for(role))
+    return _clean(raw, [o["id"] for o in ctx["options"]], role, [f["id"] for f in ctx["event"]["flights"]]), perf
 
 
-def respond(role: str, round_no: int, event: dict, disruption: dict, options: list[dict], scores: dict,
-            recommendation: dict, positions: dict, thread: list[dict]) -> tuple[dict, dict]:
-    payload = _payload(round_no, role, event, disruption, options, scores)
+def respond(role: str, ctx: dict, recommendation: dict, published: dict, thread: list[dict]) -> tuple[dict, dict]:
+    payload = _payload(2, role, ctx)
     payload["mediator_recommendation"] = {
         "option": recommendation["option"],
         "scores": recommendation["scores"],
         "acceptable_to_all_agents": recommendation["acceptable_to_all"],
-        "already_rejected": recommendation["rejected_before"],
+        "rule": recommendation["rule"],
     }
-    payload["other_agents"] = {
-        ai.ROLE_NAMES[r]: {"preferred": p["ranking"][0], "acceptable": p.get("acceptable", []),
-                           "vetoes": p.get("vetoes", []), "argument": p.get("argument", "")}
-        for r, p in positions.items() if r != role
+    payload["published_by_other_agents"] = {
+        ai.ROLE_NAMES[r]: {"priorities": p.get("priorities"), "preferred": p["ranking"][0],
+                           "acceptable": p.get("acceptable", []), "vetoes": p.get("vetoes", []),
+                           "proposal": p.get("proposal"), "argument": p.get("argument", "")}
+        for r, p in published.items() if r != role
     }
+    payload["plans_added_by_agents"] = [o["id"] for o in ctx["options"] if o.get("proposed_by")]
     payload["messages_to_you"] = [m for m in thread if m["to"] in (role, "all") and m["from"] != role]
-    payload["full_thread"] = thread
-    payload["instruction"] = (f"Vote ACCEPT or OBJECT on option {recommendation['option']}. Reply to every "
-                              "message addressed to you. Update your acceptable options if you concede something.")
+    payload["instruction"] = (f"Turn 2 of 2 - the last turn. Vote ACCEPT or OBJECT on option "
+                              f"{recommendation['option']}. If nobody accepts, code decides from the options all three "
+                              "list as acceptable. Reply to every message addressed to you.")
     raw, perf = ai._call(ai.ROLE_NAMES[role], system=_system(role), user=json.dumps(payload, indent=1),
-                         tool=NEGOTIATE_TOOL)
-    p = _clean(raw, [o["id"] for o in options], role)
+                         tool=tool_for(role))
+    p = _clean(raw, [o["id"] for o in ctx["options"]], role, [f["id"] for f in ctx["event"]["flights"]])
     if "vote" not in p:
         raise ai.AgentCallError(f"{ai.ROLE_NAMES[role]}: no ACCEPT/OBJECT vote on the recommendation")
     return p, perf
