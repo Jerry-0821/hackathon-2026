@@ -109,22 +109,45 @@ def _build_user_message(role: str, state: dict, current_proposal: dict, constrai
     return json.dumps(payload, indent=2)
 
 
+class AgentCallError(Exception):
+    """Raised when an agent's API call fails or returns something unusable.
+    Carries a short, user-facing message - callers should stop the negotiation,
+    not guess at a substitute response."""
+
+
 def call_agent(role: str, state: dict, current_proposal: dict, constraint_result: tuple, turn: int) -> dict:
-    """One independent API call. Returns the parsed structured response dict, plus 'from'/'turn'."""
+    """One independent API call. Returns the parsed structured response dict, plus 'from'/'turn'.
+    Raises AgentCallError on any API failure or malformed response."""
     client = _get_client()
     user_message = _build_user_message(role, state, current_proposal, constraint_result, turn)
 
-    resp = client.messages.create(
-        model=MODEL,
-        max_tokens=1024,
-        system=SYSTEM_PROMPTS[role],
-        tools=[RESPONSE_TOOL],
-        tool_choice={"type": "tool", "name": "submit_response"},
-        messages=[{"role": "user", "content": user_message}],
-    )
+    try:
+        resp = client.messages.create(
+            model=MODEL,
+            max_tokens=1024,
+            system=SYSTEM_PROMPTS[role],
+            tools=[RESPONSE_TOOL],
+            tool_choice={"type": "tool", "name": "submit_response"},
+            messages=[{"role": "user", "content": user_message}],
+        )
+    except anthropic.AuthenticationError as e:
+        raise AgentCallError(f"{role}: invalid API key - check your .env file") from e
+    except anthropic.RateLimitError as e:
+        raise AgentCallError(f"{role}: rate limited or out of credits - wait a bit and try again") from e
+    except anthropic.APIConnectionError as e:
+        raise AgentCallError(f"{role}: can't reach Claude - check your internet connection") from e
+    except anthropic.APIStatusError as e:
+        raise AgentCallError(f"{role}: API error ({e.status_code}): {e.message}") from e
 
-    tool_use_block = next(b for b in resp.content if b.type == "tool_use")
+    try:
+        tool_use_block = next(b for b in resp.content if b.type == "tool_use")
+    except StopIteration as e:
+        raise AgentCallError(f"{role}: model did not return a structured response") from e
+
     result = dict(tool_use_block.input)
+    if "vote" not in result:
+        raise AgentCallError(f"{role}: structured response is missing the required 'vote' field")
+
     result["from"] = role
     result["turn"] = turn
     result["proposal_under_review"] = current_proposal

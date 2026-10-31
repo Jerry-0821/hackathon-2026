@@ -19,11 +19,11 @@ ROLE_ORDER = ["atc", "pilot", "ground"]
 MAX_TURNS = 3
 
 
-def run():
+def run(scenario_id: str = scenario.DEFAULT_SCENARIO):
     """Generator yielding event dicts as the negotiation proceeds. The final event has
     type 'done' and carries the full consensus log (also written to consensus_log.json)."""
 
-    state = scenario.initial_state()
+    state = scenario.initial_state(scenario_id)
     current_proposal = {
         "revised_arrival_time": state["naive_arrival"],
         "gate_assignment": state["derived"]["current_gate"],
@@ -61,7 +61,16 @@ def run():
             turn_log["events"].append(validation_event)
             yield validation_event
 
-            response = agents.call_agent(role, state, current_proposal, constraint_result, turn)
+            try:
+                response = agents.call_agent(role, state, current_proposal, constraint_result, turn)
+            except agents.AgentCallError as e:
+                log["outcome"] = {"status": "error", "message": str(e), "turn": turn, "role": role}
+                with open("consensus_log.json", "w") as f:
+                    json.dump(log, f, indent=2)
+                yield {"type": "error", "turn": turn, "role": role, "message": str(e)}
+                yield {"type": "done", "log": log}
+                return
+
             agent_event = {"type": "agent_response", "turn": turn, "response": response}
             turn_log["events"].append(agent_event)
             turn_log["votes"].append(response)

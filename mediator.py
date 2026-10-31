@@ -2,8 +2,7 @@
 
 Consensus is a strict gate: all 3 agents must have voted ACCEPT on the same
 (unchanged) proposal within the turn, AND that proposal must pass the constraint
-validator. There is no partial-credit / averaged path to consensus - a descriptive
-score is computed for the log/UI narrative only and never overrides this gate.
+validator. There is no partial-credit / averaged path to consensus.
 """
 
 from __future__ import annotations
@@ -26,20 +25,4 @@ def evaluate_turn(votes: list[dict], final_constraint_ok: bool) -> dict:
     return {
         "consensus": consensus,
         "reasons": reasons,
-        "descriptive_score": _descriptive_score(votes),
     }
-
-
-def _descriptive_score(votes: list[dict]) -> float:
-    """Narrative-only score (never used to grant consensus) summarizing how favorable
-    the agents' own utility fields looked on this turn's final proposal."""
-    all_values = []
-    for v in votes:
-        for val in v.get("utility_fields", {}).values():
-            try:
-                all_values.append(float(val))
-            except (TypeError, ValueError):
-                continue
-    if not all_values:
-        return 0.0
-    return round(sum(all_values) / len(all_values), 2)

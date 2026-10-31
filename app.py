@@ -13,7 +13,14 @@ st.caption(
     "capped at 3 turns, with a deterministic constraint validator and fallback."
 )
 
-state = scenario.initial_state()
+scenario_options = scenario.list_scenarios()
+scenario_id = st.selectbox(
+    "Scenario (real disrupted flight from the 2015 DOT dataset)",
+    options=[key for key, _ in scenario_options],
+    format_func=lambda key: dict(scenario_options)[key],
+)
+
+state = scenario.initial_state(scenario_id)
 flight = state["flight"]
 derived = state["derived"]
 
@@ -21,7 +28,7 @@ with st.container(border=True):
     cols = st.columns(4)
     cols[0].metric("Flight", f"{flight['airline']} {flight['flight_number']}")
     cols[1].metric("Route", f"{flight['origin_airport']} -> {flight['destination_airport']}")
-    cols[2].metric("Weather delay", f"{flight['weather_delay_minutes']} min")
+    cols[2].metric(f"{flight['delay_cause'].replace('_', ' ').title()} delay", f"{flight['primary_delay_minutes']} min")
     cols[3].metric("Naive arrival (no negotiation)", state["naive_arrival"])
     st.caption(
         f"Scheduled arrival {flight['scheduled_arrival']} | "
@@ -34,7 +41,7 @@ VOTE_ICON = {"ACCEPT": "✅", "REJECT": "❌", "COUNTER": "🔁"}
 
 if st.button("Run negotiation", type="primary"):
     final_log = None
-    for event in orchestrator.run():
+    for event in orchestrator.run(scenario_id):
         t = event["type"]
         if t == "turn_start":
             st.subheader(f"Turn {event['turn']}")
@@ -61,6 +68,8 @@ if st.button("Run negotiation", type="primary"):
                 st.success(f"Turn {event['turn']}: CONSENSUS reached on {event['final_proposal']}")
             else:
                 st.warning(f"Turn {event['turn']}: no consensus — {'; '.join(m['reasons'])}")
+        elif t == "error":
+            st.error(f"Negotiation stopped — {event['message']}")
         elif t == "done":
             final_log = event["log"]
 
@@ -73,15 +82,21 @@ if st.button("Run negotiation", type="primary"):
                 f"arrival {outcome['proposal']['revised_arrival_time']}, "
                 f"gate {outcome['proposal']['gate_assignment']}"
             )
-        else:
+        elif outcome["status"] == "fallback":
             fb = outcome["fallback_detail"]
             st.warning(f"FINAL OUTCOME: deterministic fallback fired ({fb['source']}) — {fb['reason']}")
             st.write(
                 f"Fallback proposal: arrival {outcome['proposal']['revised_arrival_time']}, "
                 f"gate {outcome['proposal']['gate_assignment']}"
             )
+        else:  # status == "error"
+            st.error(
+                f"FINAL OUTCOME: negotiation could not complete — {outcome['message']} "
+                f"(failed on turn {outcome['turn']}, {outcome['role']} agent)"
+            )
 
-        html_path = log_render.render_to_file(final_log)
-        st.caption(f"Full consensus log written to consensus_log.json; static visualization at {html_path}")
-        with open(html_path, encoding="utf-8") as f:
-            components.html(f.read(), height=900, scrolling=True)
+        if outcome["status"] != "error":
+            html_path = log_render.render_to_file(final_log)
+            st.caption(f"Full consensus log written to consensus_log.json; static visualization at {html_path}")
+            with open(html_path, encoding="utf-8") as f:
+                components.html(f.read(), height=900, scrolling=True)
