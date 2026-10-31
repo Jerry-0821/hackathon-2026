@@ -37,6 +37,7 @@ Its design spec: [`.plans/atc-multiagent-negotiation-spec.md`](.plans/atc-multia
 | `views/cascade.py` | Main demo page: runway closure cascade |
 | `views/evaluation.py` | Evaluation results page |
 | `views/single_flight.py` | v1 single-flight negotiation page |
+| `views/balanced_negotiation.py`, `orchestrator_balanced.py`, `agents_balanced.py`, `balancer.py`, `rules.py`, `scoring.py`, `compare.py` | Balanced negotiation: parallel proposals + mediator (design: `.plans/balanced-negotiation-design.md`) |
 | `ai.py` | All Claude calls for the cascade: intake, agent rankings, decision brief |
 | `solver.py` | Deterministic plan generator, Pareto front, independent safety check |
 | `negotiate.py` | Cascade pipeline and the voting rule |
