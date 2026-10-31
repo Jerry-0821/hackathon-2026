@@ -1,4 +1,7 @@
+"""The mediator (balancer.py): real safety filter + scoring from declared preferences."""
+
 import balancer
+import rules
 import scenario
 
 BUSY_HUB = "weather_dfw_mia_busy_hub"
@@ -8,27 +11,68 @@ def _p(t, gate):
     return {"revised_arrival_time": t, "gate_assignment": gate}
 
 
-def test_balancer_finds_the_middle_ground_from_selfish_proposals():
-    """ATC and Pilot want early, Ground wants late. Only ~10:48 keeps everyone at or above 6."""
+# What well-informed agents would publish for the busy hub scenario.
+DECLARATIONS = {
+    "atc": {"proposal": _p("10:40", "D9"), "blocked_slots": "10:34-10:38 any; 10:42-10:46 any; 10:50-10:54 any",
+            "preferred_window": "10:38-10:42", "preferred_window_importance": "low"},
+    "pilot": {"proposal": _p("10:39", "D12"), "latest_acceptable_arrival": "11:03",
+              "preferred_window": "10:38-10:50", "preferred_window_importance": "high",
+              "preferred_gate": "D12", "preferred_gate_importance": "high"},
+    "ground": {"proposal": _p("10:52", "D9"), "blocked_slots": "10:28-11:03 D10; 10:38-11:08 D14",
+               "preferred_window": "10:50-11:10", "preferred_window_importance": "high",
+               "preferred_gate": "D9", "preferred_gate_importance": "low"},
+}
+
+
+def test_mediator_finds_the_middle_ground_from_declarations():
     state = scenario.initial_state(BUSY_HUB)
-    result = balancer.balance(
-        {"atc": _p("10:40", "D9"), "pilot": _p("10:39", "D12"), "ground": _p("10:55", "D9")}, state
-    )
+    result = balancer.mediate(DECLARATIONS, state)
     assert result["found"]
-    assert result["proposal"]["revised_arrival_time"] == "10:48"
+    assert result["proposal"] == _p("10:49", "D12")
     assert result["below_minimum"] == []
     gave_up = {t["role"]: t["gave_up"] for t in result["trade_offs"]}
-    assert gave_up["atc"] > 0 and gave_up["ground"] > 0  # both conceded something
+    assert gave_up["atc"] > 0 and gave_up["pilot"] == 0  # ATC gives up time; pilot gets its wish
 
 
-def test_never_picks_an_unsafe_option():
+def test_scores_come_only_from_declarations():
+    """Ground declares nothing about the crew - the mediator must not use the hidden crew data."""
     state = scenario.initial_state(BUSY_HUB)
-    # Everyone asks for slots that break a red line (wake separation / gate occupied / too early).
-    result = balancer.balance(
-        {"atc": _p("10:36", "D9"), "pilot": _p("10:20", "D12"), "ground": _p("10:44", "D14")}, state
-    )
-    assert result["found"]
+    decl = {"ground": {"proposal": _p("10:40", "D12")}}  # no window -> own time +/- 2min is the ideal
+    result = balancer.mediate(decl, state)
+    assert result["scores"]["ground"] == 10.0
+    assert result["proposal"]["revised_arrival_time"] in ("10:39", "10:40", "10:41")
+
+
+def test_gate_preference_only_counts_if_declared():
+    state = scenario.initial_state(BUSY_HUB)
+    parsed = balancer.parse_declaration({"proposal": _p("10:40", "D9")}, state)
+    assert parsed["gate"] is None
+
+
+def test_declared_blocked_and_rejected_options_are_never_picked():
+    state = scenario.initial_state(BUSY_HUB)
+    first = balancer.mediate(DECLARATIONS, state)["proposal"]
+    second = balancer.mediate(DECLARATIONS, state, excluded=[first])
+    assert second["proposal"] != first
+    for d in DECLARATIONS.values():
+        assert balancer.declared_block(second["proposal"], balancer.parse_declaration(d, state)) is None
+
+
+def test_never_picks_an_unsafe_option_even_if_declarations_are_wrong():
+    state = scenario.initial_state(BUSY_HUB)
+    wrong = {"atc": {"proposal": _p("10:36", "D10"), "preferred_window": "10:36-10:36",
+                     "preferred_window_importance": "high", "preferred_gate": "D10"}}
+    result = balancer.mediate(wrong, state)
     assert balancer.check(result["proposal"], state)[0] is True
+
+
+def test_unreadable_declarations_are_ignored_with_a_warning():
+    state = scenario.initial_state(BUSY_HUB)
+    decl = {"atc": {"proposal": _p("10:40", "D9"), "preferred_window": "around ten forty",
+                    "latest_acceptable_arrival": "soon", "preferred_gate": "Z99"}}
+    result = balancer.mediate(decl, state)
+    assert result["found"]
+    assert len(result["parse_warnings"]["atc"]) == 3
 
 
 def test_bad_format_unknown_gate_and_too_early_are_rejected():
@@ -44,14 +88,14 @@ def test_bad_format_unknown_gate_and_too_early_are_rejected():
         assert any(v.startswith(rule) for v in violations), (proposal, violations)
 
 
-def test_malformed_proposals_do_not_crash_the_balancer():
+def test_emergency_is_automatic_and_puts_the_pilot_first():
     state = scenario.initial_state(BUSY_HUB)
-    result = balancer.balance({"atc": _p("ten forty", "D9"), "pilot": {}, "ground": _p("10:48", "Z99")}, state)
-    assert result["found"]
+    assert rules.fuel_emergency_needed(state) is False
+    rules.simulate_low_fuel(state)
+    assert rules.fuel_emergency_needed(state) is True
+    rules.declare_fuel_emergency(state)
+    assert state["constraints"]["max_crew_overtime_minutes"] == 45
+    assert state["constraints"]["min_fuel_reserve_minutes"] == 30  # red line unchanged
+    result = balancer.mediate(DECLARATIONS, state)
+    assert result["scores"]["pilot"] == 10.0
     assert balancer.check(result["proposal"], state)[0] is True
-
-
-def test_full_window_search_reports_nothing_when_no_safe_option_exists():
-    state = scenario.initial_state(BUSY_HUB)
-    state["constraints"]["min_fuel_reserve_minutes"] = 1000
-    assert balancer.balance({}, state, window_minutes=60)["found"] is False

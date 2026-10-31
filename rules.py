@@ -28,8 +28,11 @@ RULES = {
 # Minimum satisfaction score (scoring.py) an agent should hold out for before it ACCEPTs.
 ACCEPT_MIN_SCORE = {"atc": 6, "pilot": 6, "ground": 6}
 
-# Fuel emergency: extra holding burned fuel, so the flight lands with less reserve.
-EMERGENCY_FUEL_RESERVE_MINUTES = 36
+# Fuel emergency. Declared automatically (no human) when the reserve at the earliest possible
+# arrival is at or below the trigger - the pilot side calls "Minimum Fuel".
+EMERGENCY_FUEL_TRIGGER_MINUTES = 40
+LOW_FUEL_SIMULATION_MINUTES = 36  # "simulate low fuel" only lowers the reserve; detection does the rest
+EMERGENCY_FUEL_RESERVE_MINUTES = LOW_FUEL_SIMULATION_MINUTES  # kept for apply_fuel_emergency()
 EMERGENCY_RELAXED_LIMITS = {"max_crew_overtime_minutes": 45}
 # In an emergency ATC and Ground must yield their preferences to the aircraft in trouble.
 EMERGENCY_ACCEPT_MIN_SCORE = {"atc": 0, "pilot": 6, "ground": 0}
@@ -71,6 +74,35 @@ def apply_fuel_emergency(state: dict) -> dict:
     return state
 
 
+def simulate_low_fuel(state: dict) -> dict:
+    """Scenario input only: extra holding burned fuel. Does NOT declare an emergency."""
+    d = state["derived"]
+    d["fuel_reserve_minutes_at_naive_arrival"] = min(d["fuel_reserve_minutes_at_naive_arrival"], LOW_FUEL_SIMULATION_MINUTES)
+    return state
+
+
+def fuel_emergency_needed(state: dict) -> bool:
+    return state["derived"]["fuel_reserve_minutes_at_naive_arrival"] <= EMERGENCY_FUEL_TRIGGER_MINUTES
+
+
+def declare_fuel_emergency(state: dict) -> dict:
+    """Relax the hard rules for a Minimum Fuel emergency and record it. Red lines never change."""
+    relaxed = {}
+    for key, value in EMERGENCY_RELAXED_LIMITS.items():
+        relaxed[key] = {"from": state["constraints"].get(key), "to": value}
+        state["constraints"][key] = value
+    reserve = state["derived"]["fuel_reserve_minutes_at_naive_arrival"]
+    state["emergency"] = {
+        "type": "minimum_fuel",
+        "declared_by": "pilot",
+        "declared_automatically": True,
+        "reason": f"fuel reserve at the earliest possible arrival is {reserve}min, at or below the "
+        f"{EMERGENCY_FUEL_TRIGGER_MINUTES}min trigger",
+        "relaxed_hard_rules": relaxed,
+    }
+    return state
+
+
 def accept_min(role: str, state: dict) -> int:
     table = EMERGENCY_ACCEPT_MIN_SCORE if state.get("emergency") else ACCEPT_MIN_SCORE
     return table[role]
@@ -90,7 +122,7 @@ def role_brief(role: str, state: dict) -> str:
         f"Current limits: wake separation >= {c['min_wake_separation_minutes']}min, "
         f"fuel reserve >= {c['min_fuel_reserve_minutes']}min, crew overtime <= "
         f"{c['max_crew_overtime_minutes']}min, an arriving aircraft holds its gate for 25min.",
-        "Your satisfaction score 0-10 is computed by code from the numbers, not by you. "
+        "Your satisfaction score 0-10 is computed by the (non-AI) mediator from the preferences you declare. "
         f"Your minimum acceptable score is {accept_min(role, state)}. "
         "Always state my_red_lines, i_can_give and i_need - the other agents cannot see your data.",
     ]

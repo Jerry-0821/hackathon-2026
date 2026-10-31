@@ -1,5 +1,6 @@
-"""Second page: the parallel-proposal + balancer pipeline (orchestrator_balanced.py).
-Streamlit lists it in the sidebar next to the original app.py page."""
+"""Second page: parallel proposals + mediator (orchestrator_balanced.py).
+Streamlit lists it in the sidebar next to the original app.py page.
+Design: .plans/balanced-negotiation-design.md"""
 
 import streamlit.components.v1 as components
 import streamlit as st
@@ -10,11 +11,12 @@ import rules
 import scenario
 
 st.set_page_config(page_title="Balanced negotiation", layout="wide")
-st.title("Multi-Agent ATC Negotiation — parallel proposals + balancer")
+st.title("Multi-Agent ATC Negotiation — parallel proposals + mediator")
 st.caption(
-    "All three agents propose at the same time. A deterministic (non-AI) balancer drops every option "
-    "that breaks a red line or hard rule, scores the rest per agent, and picks the option where the "
-    "worst-off agent is best off. The agents then ACCEPT or OBJECT. Max 3 rounds, deterministic fallback."
+    "Each agent only sees its own organisation's data. All three propose at the same time and publish "
+    "their limits and preferences. A deterministic (non-AI) mediator drops every unsafe or blocked option, "
+    "scores the rest from each agent's declared preferences, and picks the option where the worst-off "
+    "agent is best off. The agents then ACCEPT or OBJECT. Max 3 rounds, deterministic fallback."
 )
 
 scenario_options = scenario.list_scenarios()
@@ -23,8 +25,9 @@ scenario_id = st.selectbox(
     options=[key for key, _ in scenario_options],
     format_func=lambda key: dict(scenario_options)[key],
 )
-fuel_emergency = st.checkbox(
-    "Simulate fuel emergency (red lines still hold; hard rules relax; ATC and Ground must yield preferences)"
+low_fuel = st.checkbox(
+    f"Simulate low fuel (reserve {rules.LOW_FUEL_SIMULATION_MINUTES} min). The system decides by itself "
+    f"whether to declare Minimum Fuel (trigger: ≤ {rules.EMERGENCY_FUEL_TRIGGER_MINUTES} min)."
 )
 
 state = scenario.initial_state(scenario_id)
@@ -37,6 +40,16 @@ with st.container(border=True):
     cols[3].metric("Earliest possible arrival", state["naive_arrival"])
 
 VOTE_ICON = {"PROPOSE": "📝", "ACCEPT": "✅", "OBJECT": "✋"}
+DECL_LABELS = {
+    "blocked_slots": "Blocked (red lines / hard rules)",
+    "latest_acceptable_arrival": "Latest acceptable arrival",
+    "preferred_window": "Preferred window",
+    "preferred_window_importance": "Window importance",
+    "preferred_gate": "Preferred gate",
+    "preferred_gate_importance": "Gate importance",
+    "i_can_give": "Can give",
+    "i_need": "Needs",
+}
 
 
 def _p(p: dict) -> str:
@@ -47,31 +60,52 @@ def _tiers(v: list[dict]) -> str:
     return "; ".join(f"[{x['tier'].replace('_', ' ').upper()}] {x['detail']}" for x in v)
 
 
+def _declaration(d: dict) -> None:
+    for key, label in DECL_LABELS.items():
+        if d.get(key):
+            st.write(f"**{label}:** {d[key]}")
+
+
 if st.button("Run negotiation", type="primary"):
     final_log = None
-    for event in orchestrator_balanced.run(scenario_id, fuel_emergency=fuel_emergency):
+    run_state = {}  # holds "emergency" once the system declares one, for the minimum-score column
+    for event in orchestrator_balanced.run(scenario_id, simulate_low_fuel=low_fuel):
         t = event["type"]
-        if t == "turn_start":
+        if t == "emergency":
+            run_state["emergency"] = event["emergency"]
+            e = event["emergency"]
+            st.error(f"🚨 MINIMUM FUEL declared automatically by the {e['declared_by']}: {e['reason']}. "
+                     f"Relaxed hard rules: {e['relaxed_hard_rules']}. Red lines unchanged.")
+        elif t == "turn_start":
             st.subheader(f"Round {event['turn']}")
         elif t == "validation" and not event["passed"]:
             st.error(f"{event['role'].upper()}'s proposal {_p(event['proposal'])} breaks: {_tiers(event['violation_tiers'])}")
         elif t == "agent_response":
             r = event["response"]
+            if r["from"] == "mediator":
+                continue
             label = _p(r["proposal"]) if r["vote"] == "PROPOSE" else ""
             with st.expander(f"{VOTE_ICON.get(r['vote'], '')} {r['from'].upper()} — {r['vote']} {label}", expanded=True):
                 st.write(r.get("rationale", ""))
-                for name, key in (("Red lines", "my_red_lines"), ("Can give", "i_can_give"), ("Needs", "i_need")):
-                    if r.get(key):
-                        st.write(f"**{name}:** {r[key]}")
-                if r.get("revised_proposal"):
-                    st.write(f"**Revised proposal:** {_p(r['revised_proposal'])}")
-                if r.get("concession"):
-                    st.caption("Accepted below its own minimum score - logged as a concession.")
+                if r["vote"] == "PROPOSE":
+                    _declaration(r.get("declaration", {}))
+                else:
+                    if r.get("objection_reason"):
+                        st.write(f"**Objection type:** {r['objection_reason'].replace('_', ' ')}")
+                    if r.get("revised_proposal"):
+                        st.write(f"**Would accept instead:** {_p(r['revised_proposal'])}")
+                    if r.get("declaration_update"):
+                        st.write("**Updated declaration:**")
+                        _declaration(r["declaration_update"])
+                    if r.get("concession"):
+                        st.caption("Accepted below its own minimum score - logged as a concession.")
         elif t == "balance":
             b = event["result"]
+            c = b["counts"]
             st.info(
-                f"**Balancer (no AI)** checked {b['candidates_checked']} options, {b['safe_candidates']} safe. "
-                f"Balanced proposal: **{_p(b['proposal'])}** — lowest agent score {b['min_score']}, total {b['total_score']}."
+                f"**Mediator (no AI)** — {c['options']} options: {c['unsafe_real_check']} unsafe, "
+                f"{c['declared_blocked']} declared blocked, {c['rejected_before']} rejected before, "
+                f"{b['allowed']} allowed. Rule: {b['rule']}. Balanced option: **{_p(b['proposal'])}**."
             )
             st.table([
                 {
@@ -80,11 +114,14 @@ if st.button("Run negotiation", type="primary"):
                     "own proposal safe": "yes" if x["own_proposal_safe"] else "no",
                     "score on own": x["score_on_own_proposal"],
                     "score on balanced": x["score_on_balanced"],
-                    "minimum": rules.accept_min(x["role"], state),
+                    "minimum": rules.accept_min(x["role"], run_state),
                     "gave up": x["gave_up"],
+                    "why": "; ".join(x["why"]) or "-",
                 }
                 for x in b["trade_offs"]
             ])
+            if b.get("parse_warnings"):
+                st.caption(f"Ignored unreadable declaration parts: {b['parse_warnings']}")
         elif t == "turn_summary":
             m = event["mediator"]
             if m["consensus"]:

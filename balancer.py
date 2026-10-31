@@ -1,20 +1,30 @@
-"""Deterministic balancer (no AI) for the parallel-proposal pipeline.
+"""Mediator for the parallel-proposal pipeline. Deterministic, no AI.
 
-Takes the three agents' own proposals, builds candidate options around them, removes every
-candidate that breaks a red line or hard rule, scores the rest with scoring.py (soft
-preferences), and picks the balanced one: the option where the worst-off agent is as well
-off as possible.
+1. Options: every minute from the earliest possible arrival to +60min x every real gate.
+2. Remove options that fail the real safety check (red lines / hard rules, real data), that any
+   agent DECLARED blocked, or that were rejected in an earlier round.
+3. Score each option per agent from that agent's DECLARED soft preferences (0-10).
+4. Pick the option where the worst-off agent scores highest (pick_balanced).
+
+The mediator never reads an agent's private data for scoring - only what the agent published.
+Safety is still checked with the real data, so a wrong declaration can't let an unsafe option through.
 """
 
 from __future__ import annotations
 
+import re
+
 import constraints
 import rules
-import scoring
 from scenario import hhmm, minutes_since_midnight
 
-SEARCH_PADDING_MINUTES = 5  # also look a little before/after the earliest/latest proposed time
-FALLBACK_WINDOW_MINUTES = 60  # fallback search: naive arrival .. naive + 60 on every known gate
+SEARCH_WINDOW_MINUTES = 60
+WEIGHT = {"high": 2, "low": 1}
+MINUTE_PENALTY = 0.5  # per minute outside the preferred window, times weight
+GATE_PENALTY = 2.0  # not the preferred gate, times weight
+PROPOSAL_WINDOW_PAD = 2  # no window declared -> own proposed time +/- 2min is the ideal
+
+_SLOT_RE = re.compile(r"(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})(?:\s+([A-Za-z]\w*))?")
 
 
 def check(proposal: dict, state: dict) -> tuple[bool, list[str]]:
@@ -38,92 +48,132 @@ def check(proposal: dict, state: dict) -> tuple[bool, list[str]]:
     return (len(violations) == 0, violations)
 
 
-def candidates(proposals: list[dict], state: dict, window_minutes: int | None = None) -> list[dict]:
-    """Every minute between the proposed times (plus padding) x every gate someone proposed
-    (plus the current gate). With window_minutes, search naive..naive+window on all gates."""
-    naive = state["naive_arrival_minutes"]
-    known_gates = set(state["gate_occupancy"])
+def _time(value) -> int | None:
+    try:
+        return minutes_since_midnight(str(value).strip())
+    except (TypeError, ValueError):
+        return None
 
-    if window_minutes is not None:
-        lo, hi, gates = naive, naive + window_minutes, known_gates
+
+def parse_declaration(decl: dict, state: dict) -> dict:
+    """Turn an agent's published strings into numbers. Unparsable parts become warnings."""
+    warnings = []
+    blocked = []
+    for m in _SLOT_RE.finditer(decl.get("blocked_slots") or ""):
+        start, end, gate = _time(m.group(1)), _time(m.group(2)), m.group(3)
+        if start is None or end is None or end < start:
+            warnings.append(f"ignored blocked slot {m.group(0)!r}")
+            continue
+        blocked.append((start, end, None if not gate or gate.lower() == "any" else gate))
+
+    latest = _time(decl["latest_acceptable_arrival"]) if decl.get("latest_acceptable_arrival") else None
+    if decl.get("latest_acceptable_arrival") and latest is None:
+        warnings.append(f"ignored latest_acceptable_arrival {decl['latest_acceptable_arrival']!r}")
+
+    window = None
+    m = _SLOT_RE.search(decl.get("preferred_window") or "")
+    if m and _time(m.group(1)) is not None and _time(m.group(2)) is not None:
+        window = (_time(m.group(1)), _time(m.group(2)))
     else:
-        times, gates = [], {state["derived"]["current_gate"]}
-        for p in proposals:
-            try:
-                times.append(minutes_since_midnight(p["revised_arrival_time"]))
-            except (KeyError, TypeError, ValueError):
-                continue
-            if p.get("gate_assignment") in known_gates:
-                gates.add(p["gate_assignment"])
-        if times:
-            lo, hi = max(naive, min(times) - SEARCH_PADDING_MINUTES), max(times) + SEARCH_PADDING_MINUTES
-        else:
-            lo, hi = naive, naive + SEARCH_PADDING_MINUTES
+        own = _time((decl.get("proposal") or {}).get("revised_arrival_time"))
+        if own is not None:
+            window = (own - PROPOSAL_WINDOW_PAD, own + PROPOSAL_WINDOW_PAD)
+        if decl.get("preferred_window"):
+            warnings.append(f"ignored preferred_window {decl['preferred_window']!r}")
 
-    return [
-        {"revised_arrival_time": hhmm(t), "gate_assignment": g}
-        for t in range(lo, max(lo, hi) + 1)
-        for g in sorted(gates)
-    ]
+    # A gate preference only counts if declared - many agents (e.g. ATC) don't care about gates.
+    gate = decl.get("preferred_gate")
+    if gate and gate not in state["gate_occupancy"]:
+        warnings.append(f"ignored unknown preferred_gate {gate!r}")
+        gate = None
+
+    return {
+        "blocked": blocked,
+        "latest": latest,
+        "window": window,
+        "window_weight": WEIGHT.get(str(decl.get("preferred_window_importance", "low")).lower(), 1),
+        "gate": gate,
+        "gate_weight": WEIGHT.get(str(decl.get("preferred_gate_importance", "low")).lower(), 1),
+        "warnings": warnings,
+    }
 
 
-def pick_balanced(scored: list[dict]) -> dict:
+def declared_block(option: dict, parsed: dict) -> str | None:
+    t, g = minutes_since_midnight(option["revised_arrival_time"]), option["gate_assignment"]
+    if parsed["latest"] is not None and t > parsed["latest"]:
+        return f"after declared latest arrival {hhmm(parsed['latest'])}"
+    for start, end, gate in parsed["blocked"]:
+        if start <= t <= end and (gate is None or gate == g):
+            return f"declared blocked {hhmm(start)}-{hhmm(end)} {gate or 'any gate'}"
+    return None
+
+
+def declared_score(option: dict, parsed: dict) -> dict:
+    t, g = minutes_since_midnight(option["revised_arrival_time"]), option["gate_assignment"]
+    penalties = {}
+    if parsed["window"]:
+        lo, hi = parsed["window"]
+        off = lo - t if t < lo else t - hi if t > hi else 0
+        if off:
+            penalties[f"{off}min outside preferred {hhmm(lo)}-{hhmm(hi)}"] = off * MINUTE_PENALTY * parsed["window_weight"]
+    if parsed["gate"] and g != parsed["gate"]:
+        penalties[f"not preferred gate {parsed['gate']}"] = GATE_PENALTY * parsed["gate_weight"]
+    score = round(max(0.0, 10.0 - sum(penalties.values())), 1)
+    return {"score": score, "breakdown": {k: round(v, 1) for k, v in penalties.items()}}
+
+
+def pick_balanced(scored: list[dict], emergency: bool = False) -> dict:
     """The balance rule, in one place so it is easy to change.
-    Protect the weakest: highest minimum score, then highest total, then earliest arrival."""
-    return max(
-        scored,
-        key=lambda c: (
-            min(c["scores"].values()),
-            sum(c["scores"].values()),
-            -minutes_since_midnight(c["proposal"]["revised_arrival_time"]),
-        ),
-    )
+    Normal: highest lowest-score, then highest total, then earliest arrival.
+    Emergency: the pilot (aircraft in trouble) first, then the normal rule."""
+    def key(c):
+        s = c["scores"]
+        base = (min(s.values()), sum(s.values()), -minutes_since_midnight(c["proposal"]["revised_arrival_time"]))
+        return ((s.get("pilot", 0),) + base) if emergency else base
+    return max(scored, key=key)
 
 
-def _trade_offs(proposals_by_role: dict, balanced_scores: dict, state: dict) -> list[dict]:
-    """For each agent: its own proposal, whether that was safe, and how much it gives up."""
-    out = []
-    for role, own in proposals_by_role.items():
-        ok, violations = check(own, state)
-        own_score = None
-        if not any(v.startswith("bad_format") for v in violations):
-            own_score = scoring.score(role, own, state)["score"]
-        out.append({
-            "role": role,
-            "own_proposal": own,
-            "own_proposal_safe": ok,
-            "own_proposal_violations": rules.classify(violations),
-            "score_on_own_proposal": own_score,
-            "score_on_balanced": balanced_scores[role],
-            "gave_up": None if own_score is None else round(own_score - balanced_scores[role], 1),
-        })
-    return out
+def mediate(declarations: dict, state: dict, excluded: list[dict] = ()) -> dict:
+    """declarations: {role: {"proposal": {...}, "blocked_slots": "...", ...}} as published by the agents."""
+    parsed = {role: parse_declaration(d, state) for role, d in declarations.items()}
+    naive = state["naive_arrival_minutes"]
+    excluded_keys = {(e["revised_arrival_time"], e["gate_assignment"]) for e in excluded}
 
+    counts = {"options": 0, "unsafe_real_check": 0, "declared_blocked": 0, "rejected_before": 0}
+    scored = []
+    for t in range(naive, naive + SEARCH_WINDOW_MINUTES + 1):
+        for g in sorted(state["gate_occupancy"]):
+            option = {"revised_arrival_time": hhmm(t), "gate_assignment": g}
+            counts["options"] += 1
+            if not check(option, state)[0]:
+                counts["unsafe_real_check"] += 1
+            elif any(declared_block(option, p) for p in parsed.values()):
+                counts["declared_blocked"] += 1
+            elif (option["revised_arrival_time"], g) in excluded_keys:
+                counts["rejected_before"] += 1
+            else:
+                detail = {r: declared_score(option, p) for r, p in parsed.items()}
+                scored.append({"proposal": option, "scores": {r: d["score"] for r, d in detail.items()}, "detail": detail})
 
-def balance(
-    proposals_by_role: dict,
-    state: dict,
-    window_minutes: int | None = None,
-    extra_proposals: list[dict] = (),
-) -> dict:
-    """proposals_by_role: {"atc": {...}, "pilot": {...}, "ground": {...}}
-    extra_proposals: more options to search around (e.g. last round's objections)."""
-    cands = candidates(list(proposals_by_role.values()) + list(extra_proposals), state, window_minutes)
-    safe = []
-    for c in cands:
-        if check(c, state)[0]:
-            safe.append({"proposal": c, "scores": scoring.all_scores(c, state)})
-
-    result = {"candidates_checked": len(cands), "safe_candidates": len(safe)}
-    if not safe:
+    result = {"counts": counts, "allowed": len(scored), "parse_warnings": {r: p["warnings"] for r, p in parsed.items() if p["warnings"]}}
+    if not scored:
         return {**result, "found": False}
 
-    best = pick_balanced(safe)
-    others = sorted(
-        (c for c in safe if c is not best),
-        key=lambda c: (min(c["scores"].values()), sum(c["scores"].values())),
-        reverse=True,
-    )[:3]
+    best = pick_balanced(scored, emergency=bool(state.get("emergency")))
+    trade_offs = []
+    for role, d in declarations.items():
+        own = d.get("proposal") or {}
+        own_ok = check(own, state)[0] if own else False
+        own_score = declared_score(own, parsed[role])["score"] if own_ok else None
+        trade_offs.append({
+            "role": role,
+            "own_proposal": own,
+            "own_proposal_safe": own_ok,
+            "score_on_own_proposal": own_score,
+            "score_on_balanced": best["scores"][role],
+            "gave_up": None if own_score is None else round(own_score - best["scores"][role], 1),
+            "why": best["detail"][role]["breakdown"],
+        })
     return {
         **result,
         "found": True,
@@ -132,6 +182,6 @@ def balance(
         "min_score": min(best["scores"].values()),
         "total_score": round(sum(best["scores"].values()), 1),
         "below_minimum": [r for r, s in best["scores"].items() if s < rules.accept_min(r, state)],
-        "trade_offs": _trade_offs(proposals_by_role, best["scores"], state),
-        "runner_ups": others,
+        "trade_offs": trade_offs,
+        "rule": "emergency: pilot first, then worst-off agent" if state.get("emergency") else "worst-off agent best off",
     }

@@ -1,13 +1,14 @@
 """Agent calls for the parallel-proposal pipeline (orchestrator_balanced.py).
 
-Two kinds of call, each one independent Anthropic API call per agent:
-- propose(): the agent proposes the option it wants, with its red lines, what it can give
-  and what it needs.
-- review():  the agent ACCEPTs or OBJECTs to the balanced option the (non-AI) balancer picked.
+Each agent only sees its own domain's data (private_view) plus the shared flight row and rulebook.
+It tells the others about its limits and preferences by PUBLISHING a structured declaration.
 
-The three agents are called at the same time (run_parallel), so nobody speaks first.
-Reuses agents.py: client, MODEL, SYSTEM_PROMPTS, the per-role data view and AgentCallError.
-Tool fields are flat (no nested objects) - nested objects made Haiku leak arguments into text.
+Two calls, each one independent Anthropic API call per agent, all three at the same time:
+- propose(): proposal + declaration (blocked slots, latest arrival, preferred window/gate, needs)
+- review():  ACCEPT or OBJECT to the mediator's balanced option, optionally updating the declaration
+
+Reuses agents.py: client, MODEL, _role_view and AgentCallError. Tool fields are flat strings
+(nested objects made Haiku leak arguments into the rationale text).
 """
 
 from __future__ import annotations
@@ -20,54 +21,100 @@ import anthropic
 
 import agents
 import rules
-import scoring
+from scenario import hhmm
 
 ROLES = ("atc", "pilot", "ground")
 
+OBJECTIVES = {
+    "atc": "You are the Air Traffic Control AI agent. Your objectives, in priority order: (1) runway wake "
+    "separation from other traffic, (2) no taxiway blockage, (3) maximise sector throughput (little holding, "
+    "no slot squeezed between other arrivals).",
+    "pilot": "You are the Pilot AI agent for this flight. Your objectives, in priority order: (1) flight safety "
+    "and fuel reserves, (2) minimise holding and turbulence, (3) protect connecting passengers.",
+    "ground": "You are the Ground Operations AI agent at the destination airport. Your objectives, in priority "
+    "order: (1) avoid ground-crew overtime, (2) gate utilisation without conflicts, (3) minimise turnaround delay "
+    "(the crew should be free when the aircraft arrives).",
+}
+
+PROTOCOL = (
+    "Protocol: the three agents work for different organisations and only see their own data. All three "
+    "propose at the same time and PUBLISH their limits and preferences as structured fields - that is the only "
+    "way the others learn about them. A deterministic (non-AI) mediator removes every option that breaks a red "
+    "line or a declared blocked slot, scores each option for each agent from that agent's declared preferences, "
+    "and picks the option where the worst-off agent is best off. Then all three ACCEPT or OBJECT. "
+    "Be precise and honest: declare only real limits as blocked, and mark a preference 'high' only if it matters."
+)
+
+DECLARATION_FIELDS = {
+    "blocked_slots": {"type": "string", "description": "Times you cannot accept because of YOUR red lines or hard "
+                      "rules. Format 'HH:MM-HH:MM GATE' or 'HH:MM-HH:MM any', separated by ';'. "
+                      "Example: '10:34-10:38 any; 10:28-11:03 D10'."},
+    "latest_acceptable_arrival": {"type": "string", "description": "Latest arrival your red lines allow, HH:MM."},
+    "preferred_window": {"type": "string", "description": "Arrival window you prefer, 'HH:MM-HH:MM'."},
+    "preferred_window_importance": {"type": "string", "enum": ["high", "low"]},
+    "preferred_gate": {"type": "string", "description": "Gate you prefer, only if you care about the gate."},
+    "preferred_gate_importance": {"type": "string", "enum": ["high", "low"]},
+    "i_can_give": {"type": "string", "description": "Soft preferences you are willing to trade away."},
+    "i_need": {"type": "string", "description": "What you need from a named other agent."},
+}
+DECLARATION_KEYS = tuple(DECLARATION_FIELDS)
+
 PROPOSE_TOOL = {
     "name": "submit_proposal",
-    "description": "Submit the arrival time and gate you want for this flight.",
+    "description": "Submit your proposal and publish your limits and preferences.",
     "input_schema": {
         "type": "object",
         "properties": {
             "arrival_time": {"type": "string", "description": "24h HH:MM, e.g. 10:41"},
             "gate": {"type": "string", "description": "One of known_gates."},
-            "rationale": {"type": "string", "description": "One or two plain sentences: why this option."},
-            "my_red_lines": {"type": "string", "description": "Limits the others must respect, in concrete numbers."},
-            "i_can_give": {"type": "string", "description": "Soft preferences you are willing to trade away."},
-            "i_need": {"type": "string", "description": "What you need from a named other agent."},
+            "rationale": {"type": "string", "description": "One or two plain sentences."},
+            **DECLARATION_FIELDS,
         },
-        "required": ["arrival_time", "gate", "rationale", "my_red_lines"],
+        "required": ["arrival_time", "gate", "rationale", "preferred_window", "preferred_window_importance"],
     },
 }
 
 REVIEW_TOOL = {
     "name": "submit_review",
-    "description": "Accept or object to the balanced proposal.",
+    "description": "Accept or object to the mediator's balanced option.",
     "input_schema": {
         "type": "object",
         "properties": {
             "vote": {"type": "string", "enum": ["ACCEPT", "OBJECT"]},
-            "rationale": {"type": "string", "description": "One or two plain sentences explaining the vote."},
-            "revised_arrival_time": {"type": "string", "description": "Required for OBJECT: 24h HH:MM."},
-            "revised_gate": {"type": "string", "description": "Required for OBJECT: one of known_gates."},
-            "my_red_lines": {"type": "string", "description": "Limits the others must respect, in concrete numbers."},
-            "i_need": {"type": "string", "description": "What you need from a named other agent."},
+            "objection_reason": {"type": "string", "enum": ["red_line", "hard_rule", "preference"],
+                                 "description": "Required for OBJECT: which kind of limit the option breaks for you."},
+            "rationale": {"type": "string", "description": "One or two plain sentences."},
+            "revised_arrival_time": {"type": "string", "description": "For OBJECT: 24h HH:MM you would accept."},
+            "revised_gate": {"type": "string", "description": "For OBJECT: gate you would accept."},
+            **{k: {**v, "description": v.get("description", "") + " Only fill in to UPDATE your declaration."}
+               for k, v in DECLARATION_FIELDS.items()},
         },
         "required": ["vote", "rationale"],
     },
 }
 
-PROTOCOL_NOTE = (
-    "Protocol for this negotiation: all three agents propose at the same time, a deterministic "
-    "(non-AI) balancer removes every option that breaks a red line or hard rule and picks the "
-    "option where the worst-off agent is best off, then all three agents ACCEPT or OBJECT to it. "
-    "There is no COUNTER vote here - to disagree, OBJECT with a revised arrival time and gate."
-)
+
+def private_view(role: str, state: dict) -> dict:
+    """Only this role's own data. Extends agents._role_view with the soft-preference facts the
+    role needs to argue for itself (connection cut-offs, when the crew is free, nearest gate)."""
+    view = agents._role_view(role, state)
+    d, naive = state["derived"], state["naive_arrival_minutes"]
+    if role == "pilot" and d.get("connection_cutoff_offsets"):
+        cut = d["connection_cutoff_offsets"]
+        view["connections_still_made_if_arriving_by"] = {
+            **{g: hhmm(naive + off) for g, off in cut.items() if g != "default"},
+            "any other gate": hhmm(naive + cut["default"]),
+        }
+    if role == "ground":
+        view["crew_free_from"] = hhmm(naive + d.get("crew_ready_offset", 0))
+        view["gate_nearest_crew_base"] = d.get("ground_preferred_gate", d["current_gate"])
+        view.pop("requested_gate", None)  # the pilot's / airline's wish, not ground's own data
+    view["emergency"] = state.get("emergency")
+    return view
 
 
 def _system(role: str, state: dict) -> str:
-    return "\n\n".join([agents.SYSTEM_PROMPTS[role], rules.role_brief(role, state), PROTOCOL_NOTE])
+    return "\n\n".join([OBJECTIVES[role], rules.role_brief(role, state), PROTOCOL])
 
 
 def _call(role: str, state: dict, payload: dict, tool: dict) -> dict:
@@ -104,18 +151,19 @@ def _call(role: str, state: dict, payload: dict, tool: dict) -> dict:
     return result
 
 
-def propose(role: str, state: dict, round_no: int, previous_round: dict | None) -> dict:
+def propose(role: str, state: dict, round_no: int, context: dict) -> dict:
+    """context: {"published": {role: declaration}, "previous_round": {...} or None}"""
     payload = {
         "round": round_no,
         "flight": state["flight"],
-        "your_operational_data": agents._role_view(role, state),
-        "emergency": state.get("emergency"),
-        "previous_round": previous_round,
+        "your_private_data": private_view(role, state),
+        "declarations_published_by_other_agents": {r: d for r, d in context["published"].items() if r != role},
+        "previous_round": context.get("previous_round"),
         "instruction": (
-            "Propose the arrival time and gate that is best for YOUR role while keeping every red line "
-            "and hard rule. If previous_round is set, read the other agents' objections, red lines and "
-            "needs, and move toward an option they can accept. State my_red_lines, i_can_give and "
-            "i_need concretely - the others cannot see your data."
+            "Propose the arrival time and gate that is best for YOUR role and keeps every red line. "
+            "Publish blocked_slots and latest_acceptable_arrival from YOUR data, and your preferred window/gate. "
+            "From round 2, read the other agents' declarations and objections and move toward an option "
+            "that fits their limits too."
         ),
     }
     result = _call(role, state, payload, PROPOSE_TOOL)
@@ -128,25 +176,23 @@ def propose(role: str, state: dict, round_no: int, previous_round: dict | None) 
     return result
 
 
-def review(role: str, state: dict, round_no: int, balanced: dict, proposals: dict) -> dict:
+def review(role: str, state: dict, round_no: int, mediated: dict, published: dict) -> dict:
+    mine = next(t for t in mediated["trade_offs"] if t["role"] == role)
     payload = {
         "round": round_no,
-        "your_operational_data": agents._role_view(role, state),
-        "emergency": state.get("emergency"),
-        "balanced_proposal": balanced["proposal"],
-        "balanced_proposal_passed_all_red_lines_and_hard_rules": True,
-        "your_score_for_balanced_proposal": scoring.score(role, balanced["proposal"], state),
+        "your_private_data": private_view(role, state),
+        "balanced_option": mediated["proposal"],
+        "balanced_option_passed_every_safety_check": True,
+        "your_score_from_your_declared_preferences": mediated["scores"][role],
+        "why_your_score_is_not_10": mine["why"],
         "your_accept_min_score": rules.accept_min(role, state),
-        "what_each_agent_gives_up": balanced["trade_offs"],
-        "this_rounds_proposals": {
-            r: {k: p.get(k) for k in ("proposal", "rationale", "my_red_lines", "i_can_give", "i_need")}
-            for r, p in proposals.items()
-        },
+        "all_scores": mediated["scores"],
+        "all_published_declarations": published,
         "instruction": (
-            "ACCEPT the balanced proposal if it keeps your red lines and your score is at least your "
-            "minimum - nobody gets everything they asked for. OBJECT only if it breaks one of your red "
-            "lines or hard rules, or your score is below your minimum. If you OBJECT, give a revised "
-            "arrival time and gate that also respects the other agents' red lines."
+            "ACCEPT if the balanced option keeps your red lines and hard rules and your score is at least your "
+            "minimum - nobody gets everything. OBJECT only if it breaks a red line or hard rule for you, or your "
+            "score is below your minimum; then set objection_reason, give a revised arrival time and gate that "
+            "also fits the other agents' published limits, and update your declaration if it was wrong or missing."
         ),
     }
     result = _call(role, state, payload, REVIEW_TOOL)
@@ -154,11 +200,13 @@ def review(role: str, state: dict, round_no: int, balanced: dict, proposals: dic
         raise agents.AgentCallError(f"{role}: review vote must be ACCEPT or OBJECT")
     arrival, gate = result.pop("revised_arrival_time", None), result.pop("revised_gate", None)
     if result["vote"] == "OBJECT" and arrival and gate:
-        result["revised_proposal"] = {
-            "revised_arrival_time": str(arrival).strip(),
-            "gate_assignment": str(gate).strip(),
-        }
+        result["revised_proposal"] = {"revised_arrival_time": str(arrival).strip(), "gate_assignment": str(gate).strip()}
     return result
+
+
+def declaration_of(response: dict) -> dict:
+    """The public part of a propose/review response: what the other agents and the mediator see."""
+    return {k: response[k] for k in DECLARATION_KEYS if response.get(k)}
 
 
 def run_parallel(fn_name: str, *args) -> dict:
