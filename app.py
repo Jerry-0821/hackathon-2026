@@ -20,6 +20,10 @@ scenario_id = st.selectbox(
     format_func=lambda key: dict(scenario_options)[key],
 )
 
+fuel_emergency = st.checkbox(
+    "Simulate fuel emergency (red lines still hold; hard rules relax; ATC and Ground must yield preferences)"
+)
+
 state = scenario.initial_state(scenario_id)
 flight = state["flight"]
 derived = state["derived"]
@@ -41,7 +45,7 @@ VOTE_ICON = {"ACCEPT": "✅", "REJECT": "❌", "COUNTER": "🔁"}
 
 if st.button("Run negotiation", type="primary"):
     final_log = None
-    for event in orchestrator.run(scenario_id):
+    for event in orchestrator.run(scenario_id, fuel_emergency=fuel_emergency):
         t = event["type"]
         if t == "turn_start":
             st.subheader(f"Turn {event['turn']}")
@@ -52,13 +56,24 @@ if st.button("Run negotiation", type="primary"):
             else:
                 st.error(
                     f"Constraint check FAILED for `{event['proposal']}`: "
-                    + "; ".join(event["violations"])
+                    + "; ".join(
+                        f"[{v['tier'].replace('_', ' ').upper()}] {v['detail']}"
+                        for v in event.get("violation_tiers", [])
+                    )
                 )
         elif t == "agent_response":
             r = event["response"]
             icon = VOTE_ICON.get(r["vote"], "")
             with st.expander(f"{icon} {r['from'].upper()} — {r['vote']} (turn {r['turn']})", expanded=True):
                 st.write(r["rationale"])
+                for label, key in (("Red lines", "my_red_lines"), ("Can give", "i_can_give"), ("Needs", "i_need")):
+                    if r.get(key):
+                        st.write(f"**{label}:** {r[key]}")
+                if r.get("scores_for_proposal_under_review"):
+                    st.caption(
+                        "Satisfaction scores for the proposal it reviewed (0-10, computed by code): "
+                        + ", ".join(f"{k.upper()} {v}" for k, v in r["scores_for_proposal_under_review"].items())
+                    )
                 st.json(r.get("utility_fields", {}))
                 if r["vote"] == "COUNTER" and r.get("counter_proposal"):
                     st.write(f"Counter-proposal: `{r['counter_proposal']}`")

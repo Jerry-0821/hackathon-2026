@@ -13,17 +13,22 @@ import agents
 import constraints
 import fallback
 import mediator
+import rules
 import scenario
+import scoring
 
 ROLE_ORDER = ["atc", "pilot", "ground"]
 MAX_TURNS = 3
 
 
-def run(scenario_id: str = scenario.DEFAULT_SCENARIO):
+def run(scenario_id: str = scenario.DEFAULT_SCENARIO, fuel_emergency: bool = False):
     """Generator yielding event dicts as the negotiation proceeds. The final event has
     type 'done' and carries the full consensus log (also written to consensus_log.json)."""
 
     state = scenario.initial_state(scenario_id)
+    if fuel_emergency:
+        rules.apply_fuel_emergency(state)
+    state["negotiation_thread"] = []  # every agent's structured message, visible to the next agent
     current_proposal = {
         "revised_arrival_time": state["naive_arrival"],
         "gate_assignment": state["derived"]["current_gate"],
@@ -34,6 +39,7 @@ def run(scenario_id: str = scenario.DEFAULT_SCENARIO):
             "flight": state["flight"],
             "derived": state["derived"],
             "naive_arrival": state["naive_arrival"],
+            "emergency": state.get("emergency"),
         },
         "turns": [],
         "outcome": None,
@@ -57,6 +63,7 @@ def run(scenario_id: str = scenario.DEFAULT_SCENARIO):
                 "proposal": dict(current_proposal),
                 "passed": ok,
                 "violations": violations,
+                "violation_tiers": rules.classify(violations),
             }
             turn_log["events"].append(validation_event)
             yield validation_event
@@ -71,9 +78,16 @@ def run(scenario_id: str = scenario.DEFAULT_SCENARIO):
                 yield {"type": "done", "log": log}
                 return
 
+            response["scores_for_proposal_under_review"] = scoring.all_scores(current_proposal, state)
             agent_event = {"type": "agent_response", "turn": turn, "response": response}
             turn_log["events"].append(agent_event)
             turn_log["votes"].append(response)
+            state["negotiation_thread"].append(
+                {k: response.get(k) for k in (
+                    "from", "turn", "vote", "proposal_under_review", "counter_proposal",
+                    "rationale", "my_red_lines", "i_can_give", "i_need",
+                )}
+            )
             yield agent_event
 
             if response["vote"] == "COUNTER":

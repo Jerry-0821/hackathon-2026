@@ -12,6 +12,9 @@ import time
 import anthropic
 from dotenv import load_dotenv
 
+import rules
+import scoring
+
 load_dotenv()
 
 MODEL = "claude-haiku-4-5-20251001"
@@ -56,6 +59,19 @@ RESPONSE_TOOL = {
                 "description": "Numeric fields relevant to your role's objectives, your own honest estimate.",
                 "additionalProperties": {"type": "number"},
             },
+            "my_red_lines": {
+                "type": "string",
+                "description": "Your limits the others must respect, in concrete numbers "
+                "(e.g. 'must land by 11:03 for fuel').",
+            },
+            "i_can_give": {
+                "type": "string",
+                "description": "Soft preferences you are willing to trade away.",
+            },
+            "i_need": {
+                "type": "string",
+                "description": "What you need from a named other agent to accept.",
+            },
         },
         "required": ["vote", "rationale", "utility_fields"],
     },
@@ -99,8 +115,13 @@ def _build_user_message(role: str, state: dict, current_proposal: dict, constrai
         "current_proposal": current_proposal,
         "constraint_check_on_current_proposal": {
             "passed": ok,
-            "violations": violations,
+            "violations": rules.classify(violations),
         },
+        "your_score_for_current_proposal": scoring.score(role, current_proposal, state),
+        "your_accept_min_score": rules.accept_min(role, state),
+        "emergency": state.get("emergency"),
+        # Structured messages the other agents already sent - their limits and needs.
+        "negotiation_thread": state.get("negotiation_thread", []),
         "instruction": (
             f"As the {role} agent, vote on current_proposal using the submit_response tool. "
             "If constraint_check_on_current_proposal.passed is false, you MUST NOT vote ACCEPT - "
@@ -127,7 +148,7 @@ def call_agent(role: str, state: dict, current_proposal: dict, constraint_result
         resp = client.messages.create(
             model=MODEL,
             max_tokens=1024,
-            system=SYSTEM_PROMPTS[role],
+            system=SYSTEM_PROMPTS[role] + "\n\n" + rules.role_brief(role, state),
             tools=[RESPONSE_TOOL],
             tool_choice={"type": "tool", "name": "submit_response"},
             messages=[{"role": "user", "content": user_message}],

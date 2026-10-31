@@ -28,8 +28,15 @@ def check(proposal: dict, state: dict) -> tuple[bool, list[str]]:
                 f"{other['gate']} is below the {min_sep}min minimum"
             )
 
-    # 2. Minimum fuel reserve at the proposed arrival time.
+    # 1b. Can't arrive earlier than physically possible (scheduled arrival + the real delay).
     naive = state["naive_arrival_minutes"]
+    if arrival_minutes < naive:
+        violations.append(
+            f"earliest_arrival: {proposal['revised_arrival_time']} is {naive - arrival_minutes}min "
+            f"before the earliest possible arrival {state['naive_arrival']}"
+        )
+
+    # 2. Minimum fuel reserve at the proposed arrival time.
     delay_added = arrival_minutes - naive  # extra holding beyond the naive estimate
     fuel_margin = state["derived"]["fuel_reserve_minutes_at_naive_arrival"] - max(delay_added, 0)
     min_fuel = c["min_fuel_reserve_minutes"]
@@ -48,13 +55,21 @@ def check(proposal: dict, state: dict) -> tuple[bool, list[str]]:
         )
 
     # 4. Gate conflict - is the proposed gate occupied at the proposed arrival time?
+    #    Arriving while another aircraft is parked there is a red line (gate_conflict).
+    #    Arriving too close before the next aircraft is a hard rule (turnaround_buffer).
     busy_windows = state["gate_occupancy"].get(gate, [])
-    turnaround_end = arrival_minutes + 25  # assume a 25min minimum occupancy on arrival
+    turnaround = c.get("min_turnaround_minutes", 25)
+    turnaround_end = arrival_minutes + turnaround
     for start, end in busy_windows:
-        if arrival_minutes < end and turnaround_end > start:
+        if start <= arrival_minutes < end:
             violations.append(
                 f"gate_conflict: gate {gate} is occupied {start}-{end} (mins since midnight), "
                 f"conflicts with arrival window {arrival_minutes}-{turnaround_end}"
+            )
+        elif arrival_minutes < end and turnaround_end > start:
+            violations.append(
+                f"turnaround_buffer: gate {gate} is needed again at {start} (mins since midnight), "
+                f"leaving less than the {turnaround}min turnaround after arrival at {arrival_minutes}"
             )
 
     return (len(violations) == 0, violations)
