@@ -1,3 +1,12 @@
 .env
 .venv/
 __pycache__/
+.streamlit/secrets.toml
+
+# raw DOT dataset - not read at runtime (scenario.py hardcodes the derived row), download separately if needed
+data/
+
+# regenerated run artifacts, not source
+consensus_log.json
+negotiation_log.html
+streamlit.log
