@@ -57,7 +57,7 @@ Its design spec: [`.plans/atc-multiagent-negotiation-spec.md`](.plans/atc-multia
 
 ## First-time setup (once per computer)
 
-Install [Git](https://git-scm.com) and [Python 3.10+](https://python.org) first (tick "Add python.exe to PATH"). Then:
+Install [Git](https://git-scm.com) and [Python 3.12](https://python.org) (3.10+ works) first (tick "Add python.exe to PATH"). Then:
 
 ```powershell
 git clone https://github.com/Jerry-0821/hackathon-2026.git
@@ -65,7 +65,7 @@ cd hackathon-2026
 powershell -ExecutionPolicy Bypass -File setup.ps1
 ```
 
-`setup.ps1` creates the virtual environment, installs packages and creates `.env`. Then open `.env` and paste the API key after `ANTHROPIC_API_KEY=`.
+`setup.ps1` creates the virtual environment with Python 3.10+ (3.12 preferred), installs packages and creates `.env`. If you already have a `.venv` from an older Python, delete the `.venv` folder and run it again. Then open `.env` and paste the API key after `ANTHROPIC_API_KEY=`.
 
 > If `Activate.ps1` says "running scripts is disabled", run this once:
 > `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
