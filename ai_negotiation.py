@@ -20,6 +20,7 @@ import ai
 import cascade_rules
 import mediation
 import solver
+import workbook
 
 MESSAGE_TYPES = ["request", "offer", "concession", "reject"]
 
@@ -44,12 +45,42 @@ PROTOCOL = (
 
 
 def private_view(role: str, event: dict, disruption: dict, problem: dict) -> dict:
-    """Only this role's own operational data."""
+    """Only this role's own operational data, plus the challenge workbook limits for that role."""
+    view = _own_data(role, event, disruption, problem)
+    view["limits_from_challenge_workbook"] = _workbook_limits(role, event, problem)
+    return view
+
+
+def _workbook_limits(role: str, event: dict, problem: dict) -> dict:
+    fc = workbook.load()["fuel_crew"]
+    a = workbook.airport(event["airport"])
+    if role == "atc":
+        return {"active_runways": a["active_runways"], "max_runway_ops_per_hour": a["max_runway_ops_per_hour"],
+                "real_traffic_ops_per_hour_now": event["demand_ops_per_hour"],
+                "min_minutes_between_this_bank's_landings": {
+                    f"{k} runway(s) closed": v for k, v in problem["landing_interval_min"].items()
+                    if k < a["active_runways"]},
+                "wake_separation_nm": {**{f"{lead} then {follow}": nm for (lead, follow), nm in
+                                          workbook.load()["wake_nm"].items()},
+                                       "any other pair": workbook.load()["wake_default_nm"]},
+                "wake_note": f"converted at {workbook.APPROACH_SPEED_KT} kt and rounded up to whole minutes"}
+    if role == "pilot":
+        return {"final_reserve_min": fc["final_reserve_min"], "contingency_pct_of_trip": fc["contingency_pct"],
+                "holding_burn_kg_per_hour": {"narrowbody": fc["burn_narrow_kg_h"], "widebody": fc["burn_wide_kg_h"]},
+                "note": "fuel_above_final_reserve_min is the holding you can do before touching the final reserve."}
+    return {"min_turnaround_min": problem["turnaround_min"], "spare_gates": a["spare_gates"],
+            "gate_change_notice_min": problem["gate_change_notice_min"],
+            "gate_change_deadline": f"flights landing before {solver.hhmm(problem['decision_min'] + problem['gate_change_notice_min'])} "
+                                    "must keep their planned gate unless it is out of service",
+            "ground_shift_h": fc["ground_shift_h"], "overtime_cost": f"{fc['overtime_rate']}x after the shift"}
+
+
+def _own_data(role: str, event: dict, disruption: dict, problem: dict) -> dict:
     if role == "atc":
         return {"arrival_runways": event["arrival_runways"], "flight_rules": disruption["flight_rules"],
                 "runway_closures": [{"runway": c["runway"], "from": solver.hhmm(c["start_min"]),
                                      "to": solver.hhmm(c["end_min"])} for c in disruption["runway_closures"]],
-                "flights": [{"flight": f["id"], "eta": f["eta"], "wake": f["wake"]} for f in event["flights"]]}
+                "flights": [{"flight": f["id"], "eta": f["eta"], "wake": f.get("faa_wake", f["wake"])} for f in event["flights"]]}
     if role == "pilot":
         return {"flights": [{"flight": f["id"], "eta": f["eta"], "fuel_above_final_reserve_min": f["extra_fuel_min"],
                              "onward_connections": [{"flight": c["flight"], "departure": c["departure"], "pax": c["pax"]}

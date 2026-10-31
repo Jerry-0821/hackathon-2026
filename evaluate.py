@@ -151,8 +151,10 @@ def main() -> None:
             llm_rows.append(run_llm(e))
         result["llm_runs"] = llm_rows
     elif OUT_PATH.exists():
-        # Keep earlier LLM results when re-running the cheap part.
-        result["llm_runs"] = json.loads(OUT_PATH.read_text(encoding="utf-8")).get("llm_runs", [])
+        # Keep earlier LLM results when re-running the cheap part, but only for events that still exist.
+        current = {e["id"] for e in events}
+        result["llm_runs"] = [r for r in json.loads(OUT_PATH.read_text(encoding="utf-8")).get("llm_runs", [])
+                              if r["event_id"] in current]
 
     OUT_PATH.write_text(json.dumps(result, indent=1), encoding="utf-8")
     print(json.dumps(result["summary"], indent=1))

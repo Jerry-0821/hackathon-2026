@@ -2,4 +2,5 @@ anthropic>=0.72,<1
 python-dotenv>=1.0,<2
 streamlit>=1.66,<1.67  # tested version; newer releases may remove use_container_width and components.v1.html
 pandas>=1.4,<3  # build_cascades.py and charts (also installed by streamlit)
+openpyxl>=3.1,<4  # reads reference/challenge-2-operational-constraints.xlsx
 pytest>=7,<9  # dev/testing only, not needed to run the app

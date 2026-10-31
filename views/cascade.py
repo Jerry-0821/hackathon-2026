@@ -4,6 +4,7 @@ import json
 
 import pandas as pd
 import streamlit as st
+from streamlit.errors import StreamlitPageNotFoundError
 
 import ai
 import charts
@@ -11,6 +12,7 @@ import mediation
 import negotiate
 import negotiate_mediated
 import solver
+import workbook
 
 ROLE_ICON = {"atc": "🗼", "pilot": "👨‍✈️", "ground": "🧳"}
 
@@ -43,7 +45,23 @@ c[0].metric("Airport", event["airport"])
 c[1].metric("Arrivals affected", len(event["flights"]))
 c[2].metric("Bank starts", event["window_start"])
 c[3].metric("Gates on this pier", len(event["gates"]))
-c[4].metric("Gates at airport (approx.)", event["gates_total_airport"])
+c[4].metric("Gates at airport (workbook)", event["gates_total_airport"])
+
+limits = workbook.airport(event["airport"])
+row = event["disruption_row"][0]
+cause = (f"weather delay {row['weather_delay']} min" if row["weather_delay"] > 15
+         else f"late aircraft delay {row['late_aircraft_delay']} min")
+_p = solver.build_problem(event, event["disruption_truth"])
+st.caption(
+    f"Disruption row (rules of play): **{row['flight']}**, {cause}. "
+    f"Runway capacity (workbook): {limits['max_runway_ops_per_hour']} ops/hour on {limits['active_runways']} runways; "
+    f"real traffic this hour: {event['demand_ops_per_hour']} ops/hour. This bank can land every "
+    f"{_p['landing_interval_min'][0]} min, or every {_p['landing_interval_min'][1]} min with one runway closed. "
+    f"Turnaround {limits['min_turnaround_min']} min, {limits['spare_gates']} spare gates.")
+try:
+    st.page_link("views/operational_constraints.py", label="All limits used and every change we made", icon="📋")
+except StreamlitPageNotFoundError:  # page run on its own, outside the app.py router
+    st.caption("All limits used and every change we made: see the Constraints page.")
 
 # ---------------------------------------------------------------------------
 st.subheader("1. Incoming messages")
@@ -64,7 +82,7 @@ with st.expander("Flights in this bank", expanded=False):
         "ETA": f["eta"],
         "Real arrival delay (min)": f["real_arrival_delay"],
         "Aircraft*": f["aircraft_type"],
-        "Wake*": f["wake"],
+        "Wake (FAA)*": f.get("faa_wake", f["wake"]),
         "Fuel above reserve at ETA (min)*": f["extra_fuel_min"],
         "Planned gate*": f["preferred_gate"],
         "Connecting pax*": sum(c["pax"] for c in f["connections"]),
@@ -311,16 +329,16 @@ st.subheader(f"{9 if process == 'mediated' else 6}. The plan")
 which = st.radio("Show", [f"Chosen option {winner['id']}", "No-coordination baseline"], horizontal=True)
 plan = winner if which.startswith("Chosen") else baseline
 problem = opts["problem"]
-st.altair_chart(charts.timeline(plan, event["flights"], problem["closures"]), width="stretch")
+st.altair_chart(charts.timeline(plan, event["flights"], problem["closures"], problem["turnaround_min"]), width="stretch")
 st.dataframe(pd.DataFrame([{
     "Flight": r["flight"],
     "Lands": r.get("landing", "DIVERTS"),
     "Holding (min)": r["holding_min"],
     "Fuel margin (min / kg)": "" if r["diverted"] else f"{r['fuel_margin_min']} / {r['fuel_margin_kg']}",
     "Gate": r.get("gate", "-") + (" (changed)" if r.get("gate_changed") else ""),
-    "Gate wait (min)": r.get("gate_wait_min", ""),
+    "Gate wait (min)": r.get("gate_wait_min"),
     "Missed connections": ", ".join(r.get("missed_connections", [])) or "-",
-    "Knock-on to next departure (min)": r.get("knock_on_min", ""),
+    "Knock-on to next departure (min)": r.get("knock_on_min"),
 } for r in plan["rows"]]), hide_index=True, width="stretch")
 
 st.download_button("Download the full decision log (JSON)", json.dumps(steps["done"]["log"], indent=1),

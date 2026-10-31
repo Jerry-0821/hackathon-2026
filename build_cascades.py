@@ -8,8 +8,13 @@ tail numbers, each aircraft's next departure, and the same airline's onward depa
 used for passenger connections and gate occupancy.
 
 What is SYNTHETIC (derived deterministically, labelled in the UI): aircraft type (from
-airline + distance), fuel above final reserve, passenger counts per connection, gate
-IDs, the runway closure, the weather report and the ops note.
+airline + distance), passenger counts per connection, gate IDs, the runway closure, the
+weather report and the ops note.
+
+Limits come from the challenge workbook (workbook.py): fuel on arrival, gate count, spare
+gates, turnaround. Each event contains at least one row that meets the rules of play
+(WEATHER_DELAY > 15 or LATE_AIRCRAFT_DELAY > 20), and records the real traffic demand at the
+airport in that hour, which the solver compares with the workbook's runway capacity.
 """
 
 from __future__ import annotations
@@ -23,12 +28,13 @@ from pathlib import Path
 import pandas as pd
 
 import reference_data as ref
+import workbook
 
 OUT_PATH = Path("events/cascades.json")
 NUM_EVENTS = 40
 MAX_PER_AIRPORT = 6
 WINDOW_MIN = 20
-GATES_PER_PIER = 8
+DEMAND_WINDOW = (-20, 40)  # minutes around the bank start used to count real traffic per hour
 
 
 def h(*parts) -> int:
@@ -51,7 +57,7 @@ def load_flights() -> pd.DataFrame:
         "MONTH", "DAY", "AIRLINE", "FLIGHT_NUMBER", "TAIL_NUMBER", "ORIGIN_AIRPORT",
         "DESTINATION_AIRPORT", "SCHEDULED_DEPARTURE", "DEPARTURE_DELAY", "SCHEDULED_ARRIVAL",
         "ARRIVAL_DELAY", "DISTANCE", "AIR_TIME", "SCHEDULED_TIME", "CANCELLED", "DIVERTED",
-        "WEATHER_DELAY", "AIR_SYSTEM_DELAY",
+        "WEATHER_DELAY", "AIR_SYSTEM_DELAY", "LATE_AIRCRAFT_DELAY",
     ]
     df = pd.read_csv(
         "data/flights.csv",
@@ -63,23 +69,29 @@ def load_flights() -> pd.DataFrame:
     df = df[(df["CANCELLED"] == 0) & (df["DIVERTED"] == 0)].copy()
     df["sched_dep_min"] = df["SCHEDULED_DEPARTURE"].map(to_minutes)
     df["sched_arr_min"] = df["SCHEDULED_ARRIVAL"].map(to_minutes)
-    for c in ["DEPARTURE_DELAY", "ARRIVAL_DELAY", "WEATHER_DELAY", "AIR_SYSTEM_DELAY", "AIR_TIME"]:
+    for c in ["DEPARTURE_DELAY", "ARRIVAL_DELAY", "WEATHER_DELAY", "AIR_SYSTEM_DELAY", "LATE_AIRCRAFT_DELAY", "AIR_TIME"]:
         df[c] = df[c].fillna(0)
     return df
 
 
+def qualifies(row) -> bool:
+    """Rules of play: the disruption is a row with WEATHER_DELAY > 15 or LATE_AIRCRAFT_DELAY > 20."""
+    return row["WEATHER_DELAY"] > 15 or row["LATE_AIRCRAFT_DELAY"] > 20
+
+
 def find_candidate_windows(df: pd.DataFrame) -> list[dict]:
-    """Hub-carrier arrival banks where at least 2 flights had real weather/NAS delays."""
+    """Hub-carrier arrival banks whose modelled flights include a row that meets the rules of play."""
     candidates = []
     for airport, info in ref.AIRPORTS.items():
         arr = df[(df["DESTINATION_AIRPORT"] == airport) & (df["AIRLINE"] == info["hub_airline"])].copy()
         arr["eta_min"] = arr["sched_arr_min"] + arr["DEPARTURE_DELAY"].clip(lower=0).astype(int)
         arr = arr[(arr["eta_min"] >= 9 * 60) & (arr["eta_min"] <= 19 * 60)]
         arr["bucket"] = arr["eta_min"] // WINDOW_MIN
-        arr["disrupted"] = (arr["WEATHER_DELAY"] > 0) | (arr["AIR_SYSTEM_DELAY"] > 0)
+        arr["qualifies"] = (arr["WEATHER_DELAY"] > 15) | (arr["LATE_AIRCRAFT_DELAY"] > 20)
         for (month, day, bucket), g in arr.groupby(["MONTH", "DAY", "bucket"]):
             n = 6 + h(airport, month, day, bucket) % 3
-            if len(g) >= n and g["disrupted"].sum() >= 2:
+            # The qualifying row must be one of the n flights the event actually models.
+            if len(g) >= n and g.sort_values("eta_min").head(n)["qualifies"].any():
                 candidates.append({"airport": airport, "month": int(month), "day": int(day),
                                    "bucket": int(bucket), "n": n})
     return candidates
@@ -99,10 +111,6 @@ def pick_windows(candidates: list[dict]) -> list[dict]:
     return picked
 
 
-def gate_free(busy: dict, gate: str, start: int, end: int) -> bool:
-    return all(end <= s or start >= e for s, e, _ in busy[gate])
-
-
 def build_event(df: pd.DataFrame, c: dict) -> dict:
     airport, month, day = c["airport"], c["month"], c["day"]
     info = ref.AIRPORTS[airport]
@@ -116,32 +124,40 @@ def build_event(df: pd.DataFrame, c: dict) -> dict:
     window_start = int(arr["eta_min"].min())
 
     deps = day_df[day_df["ORIGIN_AIRPORT"] == airport].sort_values("sched_dep_min")
+    limits = workbook.airport(airport)
+    turn = limits["min_turnaround_min"]
 
-    # Gate pier: synthetic gate IDs, last two gates can take widebodies.
+    # Real traffic demand at the airport in this hour: every airline's arrivals and departures.
+    everyone = df[(df["MONTH"] == month) & (df["DAY"] == day)]
+    lo, hi = window_start + DEMAND_WINDOW[0], window_start + DEMAND_WINDOW[1]
+    a_all = everyone[everyone["DESTINATION_AIRPORT"] == airport]
+    d_all = everyone[everyone["ORIGIN_AIRPORT"] == airport]
+    a_eta = a_all["sched_arr_min"] + a_all["DEPARTURE_DELAY"].clip(lower=0)
+    d_etd = d_all["sched_dep_min"] + d_all["DEPARTURE_DELAY"].clip(lower=0)
+    demand = int(((a_eta >= lo) & (a_eta < hi)).sum() + ((d_etd >= lo) & (d_etd < hi)).sum())
+    demand = round(demand * 60 / (hi - lo))
+
+    # Gate pier: one planned gate per flight plus the workbook's spare gates (IDs synthetic).
     first_num = 10 + seed % 20
-    gates = [{"id": f"{info['concourse']}{first_num + i}", "widebody": i >= GATES_PER_PIER - 2}
-             for i in range(GATES_PER_PIER)]
+    n = len(arr)
+    widebody_flags = [ref.AIRCRAFT[ref.aircraft_type_for(airline, float(r["DISTANCE"]))]["widebody"]
+                      for _, r in arr.iterrows()]
+    gates = [{"id": f"{info['concourse']}{first_num + i}", "widebody": widebody_flags[i], "spare": False}
+             for i in range(n)]
+    gates += [{"id": f"{info['concourse']}{first_num + n + j}", "widebody": j == 0, "spare": True}
+              for j in range(limits["spare_gates"])]
     busy = {g["id"]: [] for g in gates}
-
-    # Gate occupancy from REAL same-airline departures (about 1 in 3 is parked on this pier).
-    for _, d in deps[(deps["sched_dep_min"] >= window_start - 20) & (deps["sched_dep_min"] <= window_start + 200)].iterrows():
-        label = f"{airline} {int(d['FLIGHT_NUMBER'])}"
-        if h(label, month, day) % 3 != 0:
-            continue
-        dep = int(d["sched_dep_min"])
-        for g in gates[: GATES_PER_PIER - 2]:
-            if gate_free(busy, g["id"], dep - 45, dep):
-                busy[g["id"]].append((dep - 45, dep, f"{label} departure"))
-                break
+    used_departures = set()
 
     flights = []
-    for _, r in arr.iterrows():
+    for i, (_, r) in enumerate(arr.iterrows()):
         fid = f"{airline} {int(r['FLIGHT_NUMBER'])}"
         fseed = h(fid, month, day)
         ac = ref.aircraft_type_for(airline, float(r["DISTANCE"]))
         spec = ref.AIRCRAFT[ac]
         eta = int(r["eta_min"])
         gate_in = eta + ref.TAXI_IN_MIN
+        preferred = gates[i]["id"]
 
         # Connections: REAL onward departures of the same airline; pax split is synthetic.
         # Picks are spread across the 1-3 hour bank, so some connections are tight and some are not.
@@ -176,15 +192,19 @@ def build_event(df: pd.DataFrame, c: dict) -> dict:
                 "departure_min": int(n0["sched_dep_min"]),
             }
 
-        # Preferred (planned) gate: first compatible gate free at the planned gate-in time.
-        turn = ref.TURNAROUND_MIN[spec["widebody"]]
-        compatible = [g["id"] for g in gates if g["widebody"] or not spec["widebody"]]
-        start = fseed % len(compatible)
-        ordered = compatible[start:] + compatible[:start]
-        preferred = next((g for g in ordered if gate_free(busy, g, gate_in, gate_in + turn)), None)
-        if preferred is None:
-            preferred = min(ordered, key=lambda g: max([e for _, e, _ in busy[g]] or [0]))
-        busy[preferred].append((gate_in, gate_in + turn, f"{fid} planned arrival"))
+        # The planned gate is needed again afterwards by a REAL same-airline departure (2 in 3
+        # gates), parked from one turnaround before it leaves. A late arrival then has to move
+        # to a spare gate or make that departure late.
+        if h(fid, month, day, "next") % 3:
+            after = deps[(deps["sched_dep_min"] >= gate_in + 2 * turn + 5)
+                         & (deps["sched_dep_min"] <= gate_in + 2 * turn + 60)]
+            after = after[~after["FLIGHT_NUMBER"].isin(used_departures)
+                          & (after["TAIL_NUMBER"] != r["TAIL_NUMBER"])]
+            if len(after):
+                d0 = after.iloc[fseed % len(after)]
+                used_departures.add(d0["FLIGHT_NUMBER"])
+                dep = int(d0["sched_dep_min"])
+                busy[preferred].append((dep - turn, dep, f"{airline} {int(d0['FLIGHT_NUMBER'])} departure"))
 
         flights.append({
             "id": fid,
@@ -200,20 +220,23 @@ def build_event(df: pd.DataFrame, c: dict) -> dict:
             "real_arrival_delay": int(r["ARRIVAL_DELAY"]),
             "real_weather_delay": int(r["WEATHER_DELAY"]),
             "real_nas_delay": int(r["AIR_SYSTEM_DELAY"]),
+            "real_late_aircraft_delay": int(r["LATE_AIRCRAFT_DELAY"]),
+            "meets_rules_of_play": bool(qualifies(r)),
+            "air_time_min": int(r["AIR_TIME"]),
             "aircraft_type": ac,
             "aircraft_name": spec["name"],
             "wake": spec["wake"],
+            "faa_wake": workbook.FAA_CATEGORY[ac],
             "seats": spec["seats"],
             "widebody": spec["widebody"],
-            "burn_kg_min": spec["burn_kg_min"],
-            "extra_fuel_min": 8 + round(0.03 * float(r["AIR_TIME"])) + fseed % 14,
+            "burn_kg_min": round(workbook.burn_kg_per_min(spec["widebody"]), 1),
+            "extra_fuel_min": workbook.usable_fuel_min(float(r["AIR_TIME"])),
             "preferred_gate": preferred,
             "connections": connections,
             "next_departure": next_departure,
         })
 
-    # Remove the planned-arrival entries; the solver assigns arrivals itself.
-    gate_busy = {g: [[s, e, label] for s, e, label in w if "planned arrival" not in label] for g, w in busy.items()}
+    gate_busy = {g: [[s, e, label] for s, e, label in w] for g, w in busy.items()}
 
     disruption = build_disruption(airport, month, day, window_start, gates, arr, seed)
     texts = build_texts(airport, month, day, disruption, seed)
@@ -229,11 +252,17 @@ def build_event(df: pd.DataFrame, c: dict) -> dict:
         "utc_offset": ref.utc_offset_for(airport, month, day),
         "window_start": hhmm(window_start),
         "window_start_min": window_start,
-        "gates_total_airport": info["gates_total"],
+        "gates_total_airport": limits["gates"],
+        "demand_ops_per_hour": demand,
+        "bank_arrivals_per_hour": round(len(flights) * 60 / WINDOW_MIN),
+        "disruption_row": [{"flight": f["id"], "weather_delay": f["real_weather_delay"],
+                            "late_aircraft_delay": f["real_late_aircraft_delay"]}
+                           for f in flights if f["meets_rules_of_play"]],
         "arrival_runways": info["arrival_runways"],
         "gates": gates,
         "gate_busy": gate_busy,
         "crew_shift_end_min": window_start + 70 + seed % 25,
+        "crew_shift_hours": workbook.load()["fuel_crew"]["ground_shift_h"],
         "flights": flights,
         "num_heavy": n_heavy,
         "disruption_truth": disruption,
@@ -246,12 +275,12 @@ def build_disruption(airport, month, day, window_start, gates, arr, seed) -> dic
     closed = info["arrival_runways"][seed % 2]
     start = window_start - 10 + seed % 8
     end = start + 35 + seed % 25
-    real_weather = bool((arr["WEATHER_DELAY"] > 0).any())
+    real_weather = bool((arr["WEATHER_DELAY"] > 15).any())
     if real_weather:
         rules, ceiling, vis = "IMC", 600 + 100 * (seed % 4), [1.0, 1.5, 2.0, 2.5][seed % 4]
     else:
         rules, ceiling, vis = "VMC", None, 10.0
-    narrow_gates = [g["id"] for g in gates if not g["widebody"]]
+    narrow_gates = [g["id"] for g in gates if not g["widebody"] and not g.get("spare")]
     oos_gate = narrow_gates[(seed // 7) % len(narrow_gates)]
     reason = ["hydraulic leak on the jet bridge", "fuel hydrant fault", "ground power unit failure"][seed % 3]
     return {
@@ -298,6 +327,8 @@ def build_texts(airport, month, day, d, seed) -> dict:
 
 
 def main() -> None:
+    if workbook.xlsx_path():
+        print(f"Constraints: {workbook.write_extract(ref.AIRPORTS)} refreshed from the workbook")
     print("Loading data/flights.csv (takes a minute)...")
     df = load_flights()
     candidates = find_candidate_windows(df)
@@ -305,9 +336,18 @@ def main() -> None:
     events = [build_event(df, c) for c in pick_windows(candidates)]
     events.sort(key=lambda e: (e["airport"], e["date"], e["window_start"]))
 
-    # Demo picks: events with a heavy aircraft, IMC weather and a fuel-tight flight, one per airport.
+    # Demo picks: events with a real trade-off (at least 4 distinct options), then bad weather or
+    # a heavy aircraft, then the bigger delay. One per airport.
+    import solver  # local import: solver reads the workbook, only needed here
+
+    def demo_key(e):
+        gen = solver.generate_options(solver.build_problem(e, e["disruption_truth"]))
+        interesting = (e["disruption_truth"]["flight_rules"] == "IMC") + (e["num_heavy"] > 0)
+        delay = min(o["metrics"]["total_delay_min"] for o in gen["options"])
+        return (len(gen["options"]) < 4, -interesting, -delay)
+
     demo_airports = set()
-    for e in sorted(events, key=lambda e: (e["disruption_truth"]["flight_rules"] != "IMC", -e["num_heavy"], -len(e["flights"]))):
+    for e in sorted(events, key=demo_key):
         if e["airport"] not in demo_airports and len(demo_airports) < 3:
             e["demo"] = True
             demo_airports.add(e["airport"])

@@ -13,3 +13,7 @@ streamlit.log
 benchmark_results.json
 cascade_log.json
 compare_results.json
+
+# organisers' constraints workbook: keep local (public repo); the app uses reference/constraints_extract.json
+reference/*.xlsx
+challenge-2-operational-constraints.xlsx

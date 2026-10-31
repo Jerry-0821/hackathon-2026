@@ -4,9 +4,11 @@ Given a cascade event and a disruption (runway closure, gates out of service, we
 it explores many landing orders and gate policies, simulates each one under the safety
 rules, and keeps only plans that are safe by construction:
 
-- landings respect runway rate and wake separation,
+- landings respect the runway capacity left after the closure, shared with the real traffic
+  in that hour, and FAA wake separation (both from the challenge workbook),
 - no flight lands below final reserve fuel (it diverts instead),
-- no flight uses a closed gate, a gate too small for it, or a gate that is occupied.
+- no flight uses a closed gate, a gate too small for it, or a gate that is occupied,
+- no gate changes with less than the workbook's notice before landing (unless forced).
 
 From all safe plans it computes the Pareto front over the stakeholders' objectives and
 picks a few representative options for the agents to rank. `verify()` re-checks any plan
@@ -19,6 +21,7 @@ import itertools
 import random
 
 import reference_data as ref
+import workbook
 
 # Objectives, all minimised. Fuel margin is negated so that "lower is better" holds.
 OBJECTIVES = [
@@ -48,18 +51,29 @@ def hhmm(minutes: int) -> str:
 def build_problem(event: dict, disruption: dict) -> dict:
     """disruption has the shape of event['disruption_truth'] (see build_cascades.py)."""
     oos = {g["gate"] for g in disruption.get("gates_out_of_service", [])}
-    rules = disruption.get("flight_rules", "VMC")
+    closures = [(c["start_min"], c["end_min"]) for c in disruption.get("runway_closures", [])]
+    limits = workbook.airport(event["airport"])
+    fc = workbook.load()["fuel_crew"]
+    # Landing interval for the bank, per number of runways closed (workbook capacity, real demand).
+    intervals = {k: workbook.bank_landing_interval_min(event["airport"], k, event["demand_ops_per_hour"],
+                                                       event["bank_arrivals_per_hour"])
+                 for k in range(limits["active_runways"] + 1)}
     return {
         "event": event,
         "flights": event["flights"],
         "gates": [g for g in event["gates"] if g["id"] not in oos],
         "gates_out": sorted(oos),
         "busy": {g: [(s, e) for s, e, _ in w] for g, w in event["gate_busy"].items()},
-        "closures": [(c["start_min"], c["end_min"]) for c in disruption.get("runway_closures", [])],
-        "num_runways": len(event["arrival_runways"]),
-        "closed_spacing": ref.CLOSED_SPACING_MIN[rules],
-        "flight_rules": rules,
+        "closures": closures,
+        "num_runways": limits["active_runways"],
+        "landing_interval_min": intervals,
+        "turnaround_min": limits["min_turnaround_min"],
+        "flight_rules": disruption.get("flight_rules", "VMC"),
         "crew_shift_end_min": event["crew_shift_end_min"],
+        "overtime_rate": fc["overtime_rate"],
+        # The re-plan is issued when the closure starts (or at the start of the bank if no closure).
+        "decision_min": min([s for s, _ in closures] or [event["window_start_min"]]),
+        "gate_change_notice_min": int(fc["gate_change_notice_min"]),
     }
 
 
@@ -68,11 +82,18 @@ def runways_closed_at(problem: dict, t: int) -> int:
 
 
 def rate_spacing(problem: dict, t: int) -> int:
-    return problem["closed_spacing"] if runways_closed_at(problem, t) else ref.NORMAL_SPACING_MIN
+    closed = min(runways_closed_at(problem, t), problem["num_runways"])
+    return problem["landing_interval_min"][closed]
 
 
-def required_gap(problem: dict, prev_t: int, prev_wake: str, wake: str) -> int:
-    return max(rate_spacing(problem, prev_t), ref.WAKE_SEPARATION_MIN[(prev_wake, wake)])
+def required_gap(problem: dict, prev_t: int, prev_type: str, ac_type: str) -> int:
+    """Runway capacity spacing or FAA wake separation (by aircraft type), whichever is longer."""
+    return max(rate_spacing(problem, prev_t), workbook.wake_minutes(prev_type, ac_type))
+
+
+def gate_change_allowed(problem: dict, landing_min: int) -> bool:
+    """Workbook: a gate change needs at least the notice period before arrival."""
+    return landing_min >= problem["decision_min"] + problem["gate_change_notice_min"]
 
 
 def skip_full_closure(problem: dict, t: int) -> int:
@@ -103,21 +124,24 @@ def simulate(problem: dict, order: list[int], gate_policy: str) -> dict:
     gate_ids = [g["id"] for g in problem["gates"]]
     widebody_ok = {g["id"]: g["widebody"] for g in problem["gates"]}
 
-    rows, prev_t, prev_wake = [], None, None
+    rows, prev_t, prev_type = [], None, None
     for idx in order:
         f = flights[idx]
         t = f["eta_min"]
         if prev_t is not None:
-            t = max(t, prev_t + required_gap(problem, prev_t, prev_wake, f["wake"]))
+            t = max(t, prev_t + required_gap(problem, prev_t, prev_type, f["aircraft_type"]))
         t = skip_full_closure(problem, t)
         holding = t - f["eta_min"]
         if holding > f["extra_fuel_min"]:
             rows.append({"idx": idx, "flight": f["id"], "diverted": True, "holding_min": holding})
             continue
 
-        turn = ref.TURNAROUND_MIN[f["widebody"]]
+        turn = problem["turnaround_min"]
         earliest_in = t + ref.TAXI_IN_MIN
         candidates = [g for g in gate_ids if widebody_ok[g] or not f["widebody"]]
+        pref_open = f["preferred_gate"] in candidates
+        if pref_open and not gate_change_allowed(problem, t):
+            candidates = [f["preferred_gate"]]  # too late to change: wait for the planned gate
         free = {g: gate_free_at(busy[g], earliest_in, turn) for g in candidates}
         pref = f["preferred_gate"] if f["preferred_gate"] in free else None
         # keep: wait up to GATE_KEEP_MAX_WAIT for the planned gate. keep_strict (the
@@ -141,7 +165,7 @@ def simulate(problem: dict, order: list[int], gate_policy: str) -> dict:
             "landing": hhmm(t),
             "holding_min": holding,
             "fuel_margin_min": f["extra_fuel_min"] - holding,
-            "fuel_margin_kg": (f["extra_fuel_min"] - holding) * f["burn_kg_min"],
+            "fuel_margin_kg": round((f["extra_fuel_min"] - holding) * f["burn_kg_min"]),
             "gate": gate,
             "gate_changed": gate != f["preferred_gate"],
             "gate_at_min": gate_at,
@@ -151,7 +175,7 @@ def simulate(problem: dict, order: list[int], gate_policy: str) -> dict:
             "missed_connections": [c["flight"] for c in missed],
             "knock_on_min": knock_on,
         })
-        prev_t, prev_wake = t, f["wake"]
+        prev_t, prev_type = t, f["aircraft_type"]
 
     return _score(problem, order, gate_policy, rows)
 
@@ -166,6 +190,7 @@ def _score(problem: dict, order: list[int], gate_policy: str, rows: list[dict]) 
     knock_on += sum(DIVERSION_KNOCK_ON_MIN for r in diverted if flights[r["idx"]]["next_departure"])
     last_service_end = max((r["gate_at_min"] + 30 for r in landed), default=0)
     min_fuel = min((r["fuel_margin_min"] for r in landed), default=0)
+    overtime = max(0, last_service_end - problem["crew_shift_end_min"])
     metrics = {
         "diversions": len(diverted),
         "total_delay_min": sum(r["delay_min"] for r in landed),
@@ -176,7 +201,8 @@ def _score(problem: dict, order: list[int], gate_policy: str, rows: list[dict]) 
         "gate_changes": sum(r["gate_changed"] for r in landed),
         "gate_wait_min": sum(r["gate_wait_min"] for r in landed),
         "downstream_delay_min": knock_on,
-        "crew_overtime_min": max(0, last_service_end - problem["crew_shift_end_min"]),
+        "crew_overtime_min": overtime,
+        "crew_overtime_cost_min": round(overtime * problem["overtime_rate"]),
         "last_landing": hhmm(max((r["landing_min"] for r in landed), default=0)),
     }
     return {
@@ -199,7 +225,7 @@ def heuristic_orders(problem: dict) -> dict[str, list[int]]:
         "fcfs": sorted(idx, key=lambda i: (fl[i]["eta_min"], i)),
         "fuel_deadline_first": sorted(idx, key=lambda i: (fl[i]["eta_min"] + fl[i]["extra_fuel_min"], i)),
         "connections_first": sorted(idx, key=lambda i: (-sum(c["pax"] for c in fl[i]["connections"]), i)),
-        "heavies_first": sorted(idx, key=lambda i: (fl[i]["wake"] != "H", fl[i]["eta_min"], i)),
+        "heavies_first": sorted(idx, key=lambda i: (not fl[i]["widebody"], fl[i]["eta_min"], i)),
         "next_departure_first": sorted(
             idx, key=lambda i: ((fl[i]["next_departure"] or {}).get("departure_min", 10**6), i)),
     }
@@ -309,7 +335,8 @@ def verify(problem: dict, plan: dict) -> list[str]:
 
     for prev, cur in zip(landed, landed[1:]):
         gap = cur["landing_min"] - prev["landing_min"]
-        need = required_gap(problem, prev["landing_min"], flights[prev["flight"]]["wake"], flights[cur["flight"]]["wake"])
+        need = required_gap(problem, prev["landing_min"], flights[prev["flight"]]["aircraft_type"],
+                            flights[cur["flight"]]["aircraft_type"])
         if gap < need:
             violations.append(f"{cur['flight']}: {gap} min after {prev['flight']}, needs {need}")
 
@@ -327,7 +354,11 @@ def verify(problem: dict, plan: dict) -> list[str]:
             continue
         if f["widebody"] and not gate_info[r["gate"]]["widebody"]:
             violations.append(f"{r['flight']}: widebody at narrowbody gate {r['gate']}")
-        start, end = r["gate_at_min"], r["gate_at_min"] + ref.TURNAROUND_MIN[f["widebody"]]
+        if (r["gate"] != f["preferred_gate"] and f["preferred_gate"] not in problem["gates_out"]
+                and not gate_change_allowed(problem, r["landing_min"])):
+            violations.append(f"{r['flight']}: gate changed with less than {problem['gate_change_notice_min']} "
+                              "min notice before landing")
+        start, end = r["gate_at_min"], r["gate_at_min"] + problem["turnaround_min"]
         if start < r["landing_min"] + ref.TAXI_IN_MIN:
             violations.append(f"{r['flight']}: at gate before it could taxi in")
         for s, e in occupancy[r["gate"]]:

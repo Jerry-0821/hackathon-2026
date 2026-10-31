@@ -1,51 +1,51 @@
 {
  "num_events": 40,
- "num_flights": 278,
+ "num_flights": 272,
  "summary": {
   "baseline": {
-   "diversions": 0.03,
-   "total_delay_min": 296.48,
-   "pax_missed": 151.3,
-   "min_fuel_margin_min": 5.78,
-   "gate_changes": 0.1,
-   "downstream_delay_min": 226.82,
-   "crew_overtime_min": 67.05,
-   "events_with_diversion": 1
+   "diversions": 0.2,
+   "total_delay_min": 106.35,
+   "pax_missed": 75.47,
+   "min_fuel_margin_min": 7.03,
+   "gate_changes": 0.97,
+   "downstream_delay_min": 116.67,
+   "crew_overtime_min": 31.38,
+   "events_with_diversion": 7
   },
   "min_delay": {
-   "diversions": 0,
-   "total_delay_min": 200,
-   "pax_missed": 141.05,
-   "min_fuel_margin_min": 6.75,
-   "gate_changes": 2.65,
-   "downstream_delay_min": 139.05,
-   "crew_overtime_min": 22.2,
-   "events_with_diversion": 0
+   "diversions": 0.15,
+   "total_delay_min": 44.9,
+   "pax_missed": 43.48,
+   "min_fuel_margin_min": 6.47,
+   "gate_changes": 2.62,
+   "downstream_delay_min": 66.4,
+   "crew_overtime_min": 0,
+   "events_with_diversion": 5
   },
   "mediated": {
-   "diversions": 0,
-   "total_delay_min": 200.88,
-   "pax_missed": 141.78,
-   "min_fuel_margin_min": 8.47,
-   "gate_changes": 3.3,
-   "downstream_delay_min": 140.03,
-   "crew_overtime_min": 22.2,
-   "events_with_diversion": 0
+   "diversions": 0.15,
+   "total_delay_min": 46.3,
+   "pax_missed": 39.83,
+   "min_fuel_margin_min": 6.35,
+   "gate_changes": 2.35,
+   "downstream_delay_min": 65.33,
+   "crew_overtime_min": 0,
+   "events_with_diversion": 5
   },
   "vote": {
-   "diversions": 0,
-   "total_delay_min": 200.45,
-   "pax_missed": 141.35,
-   "min_fuel_margin_min": 7.72,
-   "gate_changes": 2.95,
-   "downstream_delay_min": 135.6,
-   "crew_overtime_min": 22.2,
-   "events_with_diversion": 0
+   "diversions": 0.15,
+   "total_delay_min": 46.98,
+   "pax_missed": 45.25,
+   "min_fuel_margin_min": 7.12,
+   "gate_changes": 2.35,
+   "downstream_delay_min": 65.45,
+   "crew_overtime_min": 0,
+   "events_with_diversion": 5
   },
   "mediated_vs_baseline": {
    "diversions": {
-    "better": 1,
-    "same": 39,
+    "better": 2,
+    "same": 38,
     "worse": 0
    },
    "total_delay_min": {
@@ -54,1995 +54,1995 @@
     "worse": 0
    },
    "pax_missed": {
-    "better": 21,
-    "same": 11,
-    "worse": 8
+    "better": 36,
+    "same": 4,
+    "worse": 0
    },
    "min_fuel_margin_min": {
-    "better": 27,
-    "same": 11,
-    "worse": 2
+    "better": 11,
+    "same": 16,
+    "worse": 13
    },
    "gate_changes": {
     "better": 0,
-    "same": 3,
-    "worse": 37
+    "same": 6,
+    "worse": 34
    },
    "downstream_delay_min": {
-    "better": 33,
-    "same": 4,
-    "worse": 3
+    "better": 29,
+    "same": 6,
+    "worse": 5
    },
    "crew_overtime_min": {
-    "better": 34,
-    "same": 6,
+    "better": 26,
+    "same": 14,
     "worse": 0
    }
   },
   "total_safety_violations": 0,
   "mediated_outcomes": {
-   "consensus": 40,
+   "consensus": 39,
    "mediator_fallback": 0,
-   "vote_fallback": 0
+   "vote_fallback": 1
   },
-  "minimum_fuel_events": 4
+  "minimum_fuel_events": 12
  },
  "events": [
   {
-   "event_id": "ATL-2015-01-03-0900",
-   "airport": "ATL",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1648,
-   "front_size": 72,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 435,
-     "pax_missed": 148,
-     "min_fuel_margin_min": 0,
-     "gate_changes": 0,
-     "downstream_delay_min": 431,
-     "crew_overtime_min": 109
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 340,
-     "pax_missed": 129,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 3,
-     "downstream_delay_min": 254,
-     "crew_overtime_min": 51
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 340,
-     "pax_missed": 129,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 3,
-     "downstream_delay_min": 254,
-     "crew_overtime_min": 51
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 340,
-     "pax_missed": 129,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 3,
-     "downstream_delay_min": 254,
-     "crew_overtime_min": 51
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "ATL-2015-01-03-1600",
-   "airport": "ATL",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1646,
-   "front_size": 156,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 235,
-     "pax_missed": 133,
-     "min_fuel_margin_min": 3,
-     "gate_changes": 0,
-     "downstream_delay_min": 140,
-     "crew_overtime_min": 35
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 227,
-     "pax_missed": 109,
-     "min_fuel_margin_min": 3,
-     "gate_changes": 2,
-     "downstream_delay_min": 133,
-     "crew_overtime_min": 35
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 227,
-     "pax_missed": 81,
-     "min_fuel_margin_min": 7,
-     "gate_changes": 2,
-     "downstream_delay_min": 246,
-     "crew_overtime_min": 35
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 227,
-     "pax_missed": 109,
-     "min_fuel_margin_min": 3,
-     "gate_changes": 2,
-     "downstream_delay_min": 133,
-     "crew_overtime_min": 35
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "ATL-2015-02-26-1005",
+   "event_id": "ATL-2015-03-03-1724",
    "airport": "ATL",
    "flights": 6,
    "flight_rules": "VMC",
    "explored": 720,
-   "front_size": 69,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 240,
-     "pax_missed": 95,
-     "min_fuel_margin_min": 7,
-     "gate_changes": 0,
-     "downstream_delay_min": 242,
-     "crew_overtime_min": 34
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 240,
-     "pax_missed": 90,
-     "min_fuel_margin_min": 7,
-     "gate_changes": 0,
-     "downstream_delay_min": 249,
-     "crew_overtime_min": 34
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 240,
-     "pax_missed": 93,
-     "min_fuel_margin_min": 10,
-     "gate_changes": 4,
-     "downstream_delay_min": 245,
-     "crew_overtime_min": 34
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 240,
-     "pax_missed": 93,
-     "min_fuel_margin_min": 10,
-     "gate_changes": 4,
-     "downstream_delay_min": 245,
-     "crew_overtime_min": 34
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "ATL-2015-05-18-1441",
-   "airport": "ATL",
-   "flights": 6,
-   "flight_rules": "VMC",
-   "explored": 720,
-   "front_size": 101,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 219,
-     "pax_missed": 104,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 0,
-     "downstream_delay_min": 265,
-     "crew_overtime_min": 28
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 219,
-     "pax_missed": 104,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 0,
-     "downstream_delay_min": 265,
-     "crew_overtime_min": 28
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 219,
-     "pax_missed": 104,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 0,
-     "downstream_delay_min": 265,
-     "crew_overtime_min": 28
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 219,
-     "pax_missed": 104,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 0,
-     "downstream_delay_min": 265,
-     "crew_overtime_min": 28
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "ATL-2015-08-06-1445",
-   "airport": "ATL",
-   "flights": 6,
-   "flight_rules": "IMC",
-   "explored": 720,
-   "front_size": 67,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 230,
-     "pax_missed": 91,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 0,
-     "downstream_delay_min": 253,
-     "crew_overtime_min": 37
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 230,
-     "pax_missed": 91,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 0,
-     "downstream_delay_min": 253,
-     "crew_overtime_min": 37
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 230,
-     "pax_missed": 91,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 0,
-     "downstream_delay_min": 253,
-     "crew_overtime_min": 37
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 230,
-     "pax_missed": 91,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 0,
-     "downstream_delay_min": 253,
-     "crew_overtime_min": 37
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "ATL-2015-09-03-1840",
-   "airport": "ATL",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1647,
-   "front_size": 102,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 351,
-     "pax_missed": 130,
-     "min_fuel_margin_min": 0,
-     "gate_changes": 0,
-     "downstream_delay_min": 410,
-     "crew_overtime_min": 87
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 248,
-     "pax_missed": 99,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 4,
-     "downstream_delay_min": 307,
-     "crew_overtime_min": 50
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 248,
-     "pax_missed": 99,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 4,
-     "downstream_delay_min": 307,
-     "crew_overtime_min": 50
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 248,
-     "pax_missed": 99,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 4,
-     "downstream_delay_min": 307,
-     "crew_overtime_min": 50
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": true
-  },
-  {
-   "event_id": "CLT-2015-03-01-1503",
-   "airport": "CLT",
-   "flights": 7,
-   "flight_rules": "IMC",
-   "explored": 1647,
-   "front_size": 78,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 296,
-     "pax_missed": 140,
-     "min_fuel_margin_min": 3,
-     "gate_changes": 0,
-     "downstream_delay_min": 96,
-     "crew_overtime_min": 55
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 167,
-     "pax_missed": 133,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 2,
-     "downstream_delay_min": 44,
-     "crew_overtime_min": 31
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 167,
-     "pax_missed": 120,
-     "min_fuel_margin_min": 7,
-     "gate_changes": 4,
-     "downstream_delay_min": 28,
-     "crew_overtime_min": 31
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 167,
-     "pax_missed": 120,
-     "min_fuel_margin_min": 7,
-     "gate_changes": 4,
-     "downstream_delay_min": 28,
-     "crew_overtime_min": 31
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "CLT-2015-03-04-1040",
-   "airport": "CLT",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1850,
-   "front_size": 58,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 314,
-     "pax_missed": 102,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 0,
-     "downstream_delay_min": 331,
-     "crew_overtime_min": 64
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 142,
-     "pax_missed": 91,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 4,
-     "downstream_delay_min": 159,
-     "crew_overtime_min": 0
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 142,
-     "pax_missed": 91,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 4,
-     "downstream_delay_min": 159,
-     "crew_overtime_min": 0
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 142,
-     "pax_missed": 91,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 4,
-     "downstream_delay_min": 159,
-     "crew_overtime_min": 0
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "CLT-2015-03-12-1322",
-   "airport": "CLT",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1647,
-   "front_size": 33,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 237,
-     "pax_missed": 140,
-     "min_fuel_margin_min": 2,
-     "gate_changes": 0,
-     "downstream_delay_min": 163,
-     "crew_overtime_min": 36
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 171,
-     "pax_missed": 140,
-     "min_fuel_margin_min": 2,
-     "gate_changes": 2,
-     "downstream_delay_min": 97,
-     "crew_overtime_min": 4
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 171,
-     "pax_missed": 113,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 3,
-     "downstream_delay_min": 117,
-     "crew_overtime_min": 4
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 171,
-     "pax_missed": 113,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 3,
-     "downstream_delay_min": 117,
-     "crew_overtime_min": 4
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "CLT-2015-03-31-1500",
-   "airport": "CLT",
-   "flights": 8,
-   "flight_rules": "VMC",
-   "explored": 1961,
-   "front_size": 191,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 476,
-     "pax_missed": 190,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 0,
-     "downstream_delay_min": 352,
-     "crew_overtime_min": 117
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 301,
-     "pax_missed": 180,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 5,
-     "downstream_delay_min": 157,
-     "crew_overtime_min": 29
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 301,
-     "pax_missed": 180,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 5,
-     "downstream_delay_min": 157,
-     "crew_overtime_min": 29
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 301,
-     "pax_missed": 180,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 5,
-     "downstream_delay_min": 157,
-     "crew_overtime_min": 29
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "CLT-2015-04-04-1004",
-   "airport": "CLT",
-   "flights": 8,
-   "flight_rules": "VMC",
-   "explored": 1961,
-   "front_size": 46,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 245,
-     "pax_missed": 99,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 0,
-     "downstream_delay_min": 33,
-     "crew_overtime_min": 40
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 228,
-     "pax_missed": 80,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 4,
-     "downstream_delay_min": 5,
-     "crew_overtime_min": 34
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 228,
-     "pax_missed": 80,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 4,
-     "downstream_delay_min": 5,
-     "crew_overtime_min": 34
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 228,
-     "pax_missed": 80,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 4,
-     "downstream_delay_min": 5,
-     "crew_overtime_min": 34
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": true
-  },
-  {
-   "event_id": "DEN-2015-03-17-1801",
-   "airport": "DEN",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1646,
-   "front_size": 49,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 128,
-     "pax_missed": 67,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 1,
-     "downstream_delay_min": 112,
-     "crew_overtime_min": 76
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 64,
-     "pax_missed": 107,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 2,
-     "downstream_delay_min": 58,
-     "crew_overtime_min": 12
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 64,
-     "pax_missed": 107,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 2,
-     "downstream_delay_min": 58,
-     "crew_overtime_min": 12
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 64,
-     "pax_missed": 107,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 2,
-     "downstream_delay_min": 58,
-     "crew_overtime_min": 12
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "DEN-2015-04-03-1020",
-   "airport": "DEN",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1648,
-   "front_size": 47,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 596,
-     "pax_missed": 202,
-     "min_fuel_margin_min": 1,
-     "gate_changes": 0,
-     "downstream_delay_min": 563,
-     "crew_overtime_min": 163
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 216,
-     "pax_missed": 218,
-     "min_fuel_margin_min": 1,
-     "gate_changes": 4,
-     "downstream_delay_min": 188,
-     "crew_overtime_min": 10
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 216,
-     "pax_missed": 224,
-     "min_fuel_margin_min": 7,
-     "gate_changes": 4,
-     "downstream_delay_min": 185,
-     "crew_overtime_min": 10
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 216,
-     "pax_missed": 224,
-     "min_fuel_margin_min": 7,
-     "gate_changes": 4,
-     "downstream_delay_min": 185,
-     "crew_overtime_min": 10
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "DEN-2015-04-24-1802",
-   "airport": "DEN",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1647,
-   "front_size": 58,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 232,
-     "pax_missed": 154,
-     "min_fuel_margin_min": 7,
-     "gate_changes": 0,
-     "downstream_delay_min": 118,
-     "crew_overtime_min": 39
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 211,
-     "pax_missed": 133,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 2,
-     "downstream_delay_min": 136,
-     "crew_overtime_min": 34
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 211,
-     "pax_missed": 156,
-     "min_fuel_margin_min": 12,
-     "gate_changes": 3,
-     "downstream_delay_min": 89,
-     "crew_overtime_min": 34
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 211,
-     "pax_missed": 156,
-     "min_fuel_margin_min": 12,
-     "gate_changes": 3,
-     "downstream_delay_min": 89,
-     "crew_overtime_min": 34
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "DEN-2015-05-17-1020",
-   "airport": "DEN",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1648,
-   "front_size": 67,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 209,
-     "pax_missed": 149,
-     "min_fuel_margin_min": 1,
-     "gate_changes": 0,
-     "downstream_delay_min": 89,
-     "crew_overtime_min": 25
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 179,
-     "pax_missed": 143,
-     "min_fuel_margin_min": 3,
-     "gate_changes": 1,
-     "downstream_delay_min": 99,
-     "crew_overtime_min": 0
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 179,
-     "pax_missed": 169,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 3,
-     "downstream_delay_min": 101,
-     "crew_overtime_min": 0
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 179,
-     "pax_missed": 143,
-     "min_fuel_margin_min": 3,
-     "gate_changes": 1,
-     "downstream_delay_min": 99,
-     "crew_overtime_min": 0
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "DFW-2015-01-06-1805",
-   "airport": "DFW",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1647,
-   "front_size": 142,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 344,
-     "pax_missed": 141,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 0,
-     "downstream_delay_min": 225,
-     "crew_overtime_min": 70
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 341,
-     "pax_missed": 141,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 0,
-     "downstream_delay_min": 221,
-     "crew_overtime_min": 67
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 341,
-     "pax_missed": 141,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 0,
-     "downstream_delay_min": 221,
-     "crew_overtime_min": 67
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 341,
-     "pax_missed": 141,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 0,
-     "downstream_delay_min": 221,
-     "crew_overtime_min": 67
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "DFW-2015-03-25-1820",
-   "airport": "DFW",
-   "flights": 8,
-   "flight_rules": "VMC",
-   "explored": 1961,
-   "front_size": 328,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 485,
-     "pax_missed": 218,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 0,
-     "downstream_delay_min": 363,
-     "crew_overtime_min": 120
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 367,
-     "pax_missed": 190,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 1,
-     "downstream_delay_min": 255,
-     "crew_overtime_min": 80
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 367,
-     "pax_missed": 204,
-     "min_fuel_margin_min": 12,
-     "gate_changes": 4,
-     "downstream_delay_min": 235,
-     "crew_overtime_min": 80
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 367,
-     "pax_missed": 190,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 1,
-     "downstream_delay_min": 255,
-     "crew_overtime_min": 80
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "DFW-2015-08-01-1740",
-   "airport": "DFW",
-   "flights": 7,
-   "flight_rules": "IMC",
-   "explored": 1647,
-   "front_size": 74,
+   "front_size": 20,
    "safety_violations": 0,
    "methods": {
     "baseline": {
      "diversions": 1,
-     "total_delay_min": 246,
-     "pax_missed": 150,
-     "min_fuel_margin_min": 3,
-     "gate_changes": 0,
-     "downstream_delay_min": 230,
-     "crew_overtime_min": 48
+     "total_delay_min": 74,
+     "pax_missed": 50,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 1,
+     "downstream_delay_min": 136,
+     "crew_overtime_min": 11
     },
     "min_delay": {
      "diversions": 0,
-     "total_delay_min": 210,
-     "pax_missed": 142,
-     "min_fuel_margin_min": 2,
+     "total_delay_min": 53,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 1,
      "gate_changes": 3,
-     "downstream_delay_min": 152,
-     "crew_overtime_min": 16
+     "downstream_delay_min": 19,
+     "crew_overtime_min": 0
     },
     "mediated": {
      "diversions": 0,
-     "total_delay_min": 210,
-     "pax_missed": 130,
-     "min_fuel_margin_min": 2,
-     "gate_changes": 4,
-     "downstream_delay_min": 188,
-     "crew_overtime_min": 16
+     "total_delay_min": 65,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 2,
+     "downstream_delay_min": 13,
+     "crew_overtime_min": 0
     },
     "vote": {
      "diversions": 0,
-     "total_delay_min": 210,
-     "pax_missed": 142,
-     "min_fuel_margin_min": 2,
-     "gate_changes": 3,
-     "downstream_delay_min": 152,
-     "crew_overtime_min": 16
+     "total_delay_min": 65,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 2,
+     "downstream_delay_min": 13,
+     "crew_overtime_min": 0
     }
    },
    "mediated_method": "consensus",
    "minimum_fuel": true
   },
   {
-   "event_id": "DFW-2015-08-16-0902",
-   "airport": "DFW",
+   "event_id": "ATL-2015-03-20-1700",
+   "airport": "ATL",
    "flights": 8,
    "flight_rules": "VMC",
    "explored": 1961,
-   "front_size": 67,
+   "front_size": 28,
    "safety_violations": 0,
    "methods": {
     "baseline": {
-     "diversions": 0,
-     "total_delay_min": 476,
-     "pax_missed": 175,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 0,
-     "downstream_delay_min": 320,
-     "crew_overtime_min": 105
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 320,
-     "pax_missed": 163,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 4,
-     "downstream_delay_min": 212,
-     "crew_overtime_min": 20
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 320,
-     "pax_missed": 163,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 4,
-     "downstream_delay_min": 212,
-     "crew_overtime_min": 20
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 320,
-     "pax_missed": 163,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 4,
-     "downstream_delay_min": 212,
-     "crew_overtime_min": 20
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "DFW-2015-12-03-1740",
-   "airport": "DFW",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1648,
-   "front_size": 58,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 432,
-     "pax_missed": 190,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 0,
-     "downstream_delay_min": 222,
-     "crew_overtime_min": 115
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 157,
-     "pax_missed": 128,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 4,
-     "downstream_delay_min": 81,
-     "crew_overtime_min": 0
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 157,
-     "pax_missed": 128,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 4,
-     "downstream_delay_min": 81,
-     "crew_overtime_min": 0
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 157,
-     "pax_missed": 128,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 4,
-     "downstream_delay_min": 81,
-     "crew_overtime_min": 0
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "DFW-2015-12-04-1720",
-   "airport": "DFW",
-   "flights": 6,
-   "flight_rules": "VMC",
-   "explored": 720,
-   "front_size": 100,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 203,
-     "pax_missed": 135,
-     "min_fuel_margin_min": 10,
-     "gate_changes": 0,
-     "downstream_delay_min": 160,
-     "crew_overtime_min": 46
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 138,
-     "pax_missed": 135,
-     "min_fuel_margin_min": 13,
-     "gate_changes": 2,
-     "downstream_delay_min": 95,
-     "crew_overtime_min": 9
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 138,
-     "pax_missed": 135,
-     "min_fuel_margin_min": 13,
-     "gate_changes": 2,
-     "downstream_delay_min": 95,
-     "crew_overtime_min": 9
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 138,
-     "pax_missed": 135,
-     "min_fuel_margin_min": 13,
-     "gate_changes": 2,
-     "downstream_delay_min": 95,
-     "crew_overtime_min": 9
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "DTW-2015-07-18-1826",
-   "airport": "DTW",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1647,
-   "front_size": 202,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 336,
-     "pax_missed": 185,
-     "min_fuel_margin_min": 4,
-     "gate_changes": 0,
-     "downstream_delay_min": 19,
-     "crew_overtime_min": 85
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 252,
-     "pax_missed": 180,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 4,
-     "downstream_delay_min": 0,
-     "crew_overtime_min": 34
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 252,
-     "pax_missed": 180,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 4,
-     "downstream_delay_min": 0,
-     "crew_overtime_min": 34
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 252,
-     "pax_missed": 180,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 4,
-     "downstream_delay_min": 0,
-     "crew_overtime_min": 34
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "DTW-2015-07-29-1841",
-   "airport": "DTW",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1647,
-   "front_size": 97,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 338,
-     "pax_missed": 211,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 0,
-     "downstream_delay_min": 321,
-     "crew_overtime_min": 79
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 246,
-     "pax_missed": 204,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 3,
-     "downstream_delay_min": 229,
-     "crew_overtime_min": 29
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 250,
-     "pax_missed": 175,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 4,
-     "downstream_delay_min": 210,
-     "crew_overtime_min": 29
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 246,
-     "pax_missed": 204,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 3,
-     "downstream_delay_min": 229,
-     "crew_overtime_min": 29
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "DTW-2015-09-04-1840",
-   "airport": "DTW",
-   "flights": 6,
-   "flight_rules": "VMC",
-   "explored": 720,
-   "front_size": 97,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 253,
-     "pax_missed": 147,
-     "min_fuel_margin_min": 12,
-     "gate_changes": 0,
-     "downstream_delay_min": 166,
-     "crew_overtime_min": 83
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 170,
-     "pax_missed": 147,
-     "min_fuel_margin_min": 12,
-     "gate_changes": 2,
-     "downstream_delay_min": 83,
-     "crew_overtime_min": 22
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 170,
-     "pax_missed": 147,
-     "min_fuel_margin_min": 12,
-     "gate_changes": 2,
-     "downstream_delay_min": 83,
-     "crew_overtime_min": 22
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 170,
-     "pax_missed": 147,
-     "min_fuel_margin_min": 12,
-     "gate_changes": 2,
-     "downstream_delay_min": 83,
-     "crew_overtime_min": 22
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "DTW-2015-09-10-1102",
-   "airport": "DTW",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1647,
-   "front_size": 58,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 343,
-     "pax_missed": 224,
-     "min_fuel_margin_min": 3,
-     "gate_changes": 0,
-     "downstream_delay_min": 236,
-     "crew_overtime_min": 81
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 212,
-     "pax_missed": 224,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 3,
-     "downstream_delay_min": 105,
-     "crew_overtime_min": 13
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 212,
-     "pax_missed": 221,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 5,
-     "downstream_delay_min": 102,
-     "crew_overtime_min": 13
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 212,
-     "pax_missed": 224,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 3,
-     "downstream_delay_min": 105,
-     "crew_overtime_min": 13
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "IAH-2015-05-20-1804",
-   "airport": "IAH",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1647,
-   "front_size": 136,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 320,
-     "pax_missed": 240,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 0,
-     "downstream_delay_min": 292,
-     "crew_overtime_min": 73
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 200,
-     "pax_missed": 226,
-     "min_fuel_margin_min": 4,
-     "gate_changes": 4,
-     "downstream_delay_min": 172,
-     "crew_overtime_min": 13
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 204,
-     "pax_missed": 240,
-     "min_fuel_margin_min": 12,
-     "gate_changes": 5,
-     "downstream_delay_min": 164,
-     "crew_overtime_min": 13
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 204,
-     "pax_missed": 240,
-     "min_fuel_margin_min": 12,
-     "gate_changes": 5,
-     "downstream_delay_min": 164,
-     "crew_overtime_min": 13
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "MIA-2015-05-16-1000",
-   "airport": "MIA",
-   "flights": 8,
-   "flight_rules": "VMC",
-   "explored": 1969,
-   "front_size": 80,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 118,
+     "diversions": 1,
+     "total_delay_min": 169,
      "pax_missed": 72,
-     "min_fuel_margin_min": 13,
+     "min_fuel_margin_min": 3,
      "gate_changes": 1,
-     "downstream_delay_min": 56,
-     "crew_overtime_min": 1
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 112,
-     "pax_missed": 51,
-     "min_fuel_margin_min": 10,
-     "gate_changes": 3,
-     "downstream_delay_min": 21,
-     "crew_overtime_min": 0
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 112,
-     "pax_missed": 51,
-     "min_fuel_margin_min": 13,
-     "gate_changes": 5,
-     "downstream_delay_min": 22,
-     "crew_overtime_min": 0
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 112,
-     "pax_missed": 51,
-     "min_fuel_margin_min": 10,
-     "gate_changes": 3,
-     "downstream_delay_min": 21,
-     "crew_overtime_min": 0
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "MIA-2015-07-13-1543",
-   "airport": "MIA",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1648,
-   "front_size": 151,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 231,
-     "pax_missed": 152,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 0,
-     "downstream_delay_min": 31,
-     "crew_overtime_min": 34
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 157,
-     "pax_missed": 161,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 3,
-     "downstream_delay_min": 9,
-     "crew_overtime_min": 3
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 163,
-     "pax_missed": 161,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 5,
-     "downstream_delay_min": 7,
-     "crew_overtime_min": 3
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 163,
-     "pax_missed": 161,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 5,
-     "downstream_delay_min": 7,
-     "crew_overtime_min": 3
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "MIA-2015-07-21-1000",
-   "airport": "MIA",
-   "flights": 6,
-   "flight_rules": "VMC",
-   "explored": 720,
-   "front_size": 17,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 64,
-     "pax_missed": 0,
-     "min_fuel_margin_min": 7,
-     "gate_changes": 1,
-     "downstream_delay_min": 0,
-     "crew_overtime_min": 16
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 27,
-     "pax_missed": 0,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 1,
-     "downstream_delay_min": 0,
-     "crew_overtime_min": 0
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 27,
-     "pax_missed": 0,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 2,
-     "downstream_delay_min": 0,
-     "crew_overtime_min": 0
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 27,
-     "pax_missed": 0,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 1,
-     "downstream_delay_min": 0,
-     "crew_overtime_min": 0
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "MSP-2015-01-19-1630",
-   "airport": "MSP",
-   "flights": 6,
-   "flight_rules": "VMC",
-   "explored": 720,
-   "front_size": 49,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 221,
-     "pax_missed": 136,
-     "min_fuel_margin_min": 10,
-     "gate_changes": 0,
-     "downstream_delay_min": 203,
-     "crew_overtime_min": 36
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 158,
-     "pax_missed": 118,
-     "min_fuel_margin_min": 12,
-     "gate_changes": 4,
-     "downstream_delay_min": 125,
-     "crew_overtime_min": 10
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 158,
-     "pax_missed": 136,
-     "min_fuel_margin_min": 13,
-     "gate_changes": 2,
-     "downstream_delay_min": 140,
-     "crew_overtime_min": 10
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 158,
-     "pax_missed": 118,
-     "min_fuel_margin_min": 12,
-     "gate_changes": 4,
-     "downstream_delay_min": 125,
-     "crew_overtime_min": 10
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "MSP-2015-02-03-1840",
-   "airport": "MSP",
-   "flights": 7,
-   "flight_rules": "IMC",
-   "explored": 1801,
-   "front_size": 145,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 204,
-     "pax_missed": 99,
-     "min_fuel_margin_min": 2,
-     "gate_changes": 0,
-     "downstream_delay_min": 188,
-     "crew_overtime_min": 46
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 144,
-     "pax_missed": 99,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 5,
-     "downstream_delay_min": 133,
-     "crew_overtime_min": 12
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 144,
-     "pax_missed": 99,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 5,
-     "downstream_delay_min": 133,
-     "crew_overtime_min": 12
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 144,
-     "pax_missed": 99,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 5,
-     "downstream_delay_min": 133,
-     "crew_overtime_min": 12
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "MSP-2015-04-15-1822",
-   "airport": "MSP",
-   "flights": 8,
-   "flight_rules": "VMC",
-   "explored": 1961,
-   "front_size": 138,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 508,
-     "pax_missed": 272,
-     "min_fuel_margin_min": 2,
-     "gate_changes": 0,
      "downstream_delay_min": 427,
-     "crew_overtime_min": 120
+     "crew_overtime_min": 71
     },
     "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 259,
-     "pax_missed": 254,
+     "diversions": 1,
+     "total_delay_min": 44,
+     "pax_missed": 33,
      "min_fuel_margin_min": 3,
-     "gate_changes": 4,
-     "downstream_delay_min": 160,
-     "crew_overtime_min": 10
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 263,
-     "pax_missed": 241,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 4,
-     "downstream_delay_min": 163,
-     "crew_overtime_min": 10
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 259,
-     "pax_missed": 254,
-     "min_fuel_margin_min": 3,
-     "gate_changes": 4,
-     "downstream_delay_min": 160,
-     "crew_overtime_min": 10
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "MSP-2015-06-29-1642",
-   "airport": "MSP",
-   "flights": 7,
-   "flight_rules": "VMC",
-   "explored": 1648,
-   "front_size": 88,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 422,
-     "pax_missed": 166,
-     "min_fuel_margin_min": 4,
-     "gate_changes": 0,
-     "downstream_delay_min": 420,
-     "crew_overtime_min": 111
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 180,
-     "pax_missed": 116,
-     "min_fuel_margin_min": 4,
-     "gate_changes": 3,
-     "downstream_delay_min": 178,
+     "gate_changes": 1,
+     "downstream_delay_min": 297,
      "crew_overtime_min": 0
     },
     "mediated": {
-     "diversions": 0,
-     "total_delay_min": 180,
-     "pax_missed": 112,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 4,
-     "downstream_delay_min": 166,
+     "diversions": 1,
+     "total_delay_min": 45,
+     "pax_missed": 61,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 2,
+     "downstream_delay_min": 286,
      "crew_overtime_min": 0
     },
     "vote": {
-     "diversions": 0,
-     "total_delay_min": 180,
-     "pax_missed": 112,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 4,
-     "downstream_delay_min": 166,
+     "diversions": 1,
+     "total_delay_min": 45,
+     "pax_missed": 61,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 2,
+     "downstream_delay_min": 286,
      "crew_overtime_min": 0
     }
    },
    "mediated_method": "consensus",
-   "minimum_fuel": false
+   "minimum_fuel": true
   },
   {
-   "event_id": "MSP-2015-09-20-1821",
-   "airport": "MSP",
-   "flights": 8,
+   "event_id": "ATL-2015-07-18-1442",
+   "airport": "ATL",
+   "flights": 6,
    "flight_rules": "VMC",
-   "explored": 1961,
-   "front_size": 138,
+   "explored": 720,
+   "front_size": 79,
    "safety_violations": 0,
    "methods": {
     "baseline": {
-     "diversions": 0,
-     "total_delay_min": 376,
-     "pax_missed": 282,
-     "min_fuel_margin_min": 5,
+     "diversions": 2,
+     "total_delay_min": 35,
+     "pax_missed": 115,
+     "min_fuel_margin_min": 3,
      "gate_changes": 0,
      "downstream_delay_min": 324,
-     "crew_overtime_min": 65
+     "crew_overtime_min": 0
     },
     "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 251,
-     "pax_missed": 282,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 4,
-     "downstream_delay_min": 199,
-     "crew_overtime_min": 6
+     "diversions": 2,
+     "total_delay_min": 29,
+     "pax_missed": 69,
+     "min_fuel_margin_min": 3,
+     "gate_changes": 1,
+     "downstream_delay_min": 284,
+     "crew_overtime_min": 0
     },
     "mediated": {
-     "diversions": 0,
-     "total_delay_min": 251,
-     "pax_missed": 282,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 4,
-     "downstream_delay_min": 199,
-     "crew_overtime_min": 6
+     "diversions": 2,
+     "total_delay_min": 29,
+     "pax_missed": 69,
+     "min_fuel_margin_min": 3,
+     "gate_changes": 1,
+     "downstream_delay_min": 284,
+     "crew_overtime_min": 0
     },
     "vote": {
-     "diversions": 0,
-     "total_delay_min": 251,
-     "pax_missed": 282,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 4,
-     "downstream_delay_min": 199,
-     "crew_overtime_min": 6
+     "diversions": 2,
+     "total_delay_min": 29,
+     "pax_missed": 69,
+     "min_fuel_margin_min": 3,
+     "gate_changes": 1,
+     "downstream_delay_min": 284,
+     "crew_overtime_min": 0
     }
    },
    "mediated_method": "consensus",
    "minimum_fuel": true
   },
   {
-   "event_id": "MSP-2015-09-20-1840",
-   "airport": "MSP",
-   "flights": 6,
-   "flight_rules": "VMC",
-   "explored": 770,
-   "front_size": 24,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 155,
-     "pax_missed": 104,
-     "min_fuel_margin_min": 8,
-     "gate_changes": 0,
-     "downstream_delay_min": 156,
-     "crew_overtime_min": 43
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 80,
-     "pax_missed": 88,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 3,
-     "downstream_delay_min": 81,
-     "crew_overtime_min": 5
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 80,
-     "pax_missed": 88,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 3,
-     "downstream_delay_min": 81,
-     "crew_overtime_min": 5
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 80,
-     "pax_missed": 88,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 3,
-     "downstream_delay_min": 81,
-     "crew_overtime_min": 5
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "ORD-2015-03-01-1705",
-   "airport": "ORD",
-   "flights": 7,
-   "flight_rules": "IMC",
-   "explored": 1649,
-   "front_size": 80,
-   "safety_violations": 0,
-   "methods": {
-    "baseline": {
-     "diversions": 0,
-     "total_delay_min": 201,
-     "pax_missed": 172,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 0,
-     "downstream_delay_min": 169,
-     "crew_overtime_min": 50
-    },
-    "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 177,
-     "pax_missed": 162,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 1,
-     "downstream_delay_min": 189,
-     "crew_overtime_min": 34
-    },
-    "mediated": {
-     "diversions": 0,
-     "total_delay_min": 185,
-     "pax_missed": 180,
-     "min_fuel_margin_min": 7,
-     "gate_changes": 3,
-     "downstream_delay_min": 131,
-     "crew_overtime_min": 34
-    },
-    "vote": {
-     "diversions": 0,
-     "total_delay_min": 185,
-     "pax_missed": 172,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 1,
-     "downstream_delay_min": 123,
-     "crew_overtime_min": 34
-    }
-   },
-   "mediated_method": "consensus",
-   "minimum_fuel": false
-  },
-  {
-   "event_id": "ORD-2015-06-24-1640",
-   "airport": "ORD",
+   "event_id": "ATL-2015-08-06-1540",
+   "airport": "ATL",
    "flights": 8,
    "flight_rules": "VMC",
-   "explored": 1962,
-   "front_size": 156,
+   "explored": 1960,
+   "front_size": 56,
    "safety_violations": 0,
    "methods": {
     "baseline": {
-     "diversions": 0,
-     "total_delay_min": 580,
-     "pax_missed": 171,
-     "min_fuel_margin_min": 3,
+     "diversions": 1,
+     "total_delay_min": 240,
+     "pax_missed": 177,
+     "min_fuel_margin_min": 1,
      "gate_changes": 1,
-     "downstream_delay_min": 592,
-     "crew_overtime_min": 167
+     "downstream_delay_min": 429,
+     "crew_overtime_min": 84
     },
     "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 157,
-     "pax_missed": 128,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 6,
-     "downstream_delay_min": 179,
-     "crew_overtime_min": 19
+     "diversions": 1,
+     "total_delay_min": 66,
+     "pax_missed": 91,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 2,
+     "downstream_delay_min": 158,
+     "crew_overtime_min": 0
     },
     "mediated": {
-     "diversions": 0,
-     "total_delay_min": 166,
-     "pax_missed": 110,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 4,
-     "downstream_delay_min": 203,
-     "crew_overtime_min": 19
+     "diversions": 1,
+     "total_delay_min": 66,
+     "pax_missed": 91,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 2,
+     "downstream_delay_min": 158,
+     "crew_overtime_min": 0
     },
     "vote": {
-     "diversions": 0,
-     "total_delay_min": 157,
-     "pax_missed": 128,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 6,
-     "downstream_delay_min": 179,
-     "crew_overtime_min": 19
+     "diversions": 1,
+     "total_delay_min": 66,
+     "pax_missed": 91,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 2,
+     "downstream_delay_min": 158,
+     "crew_overtime_min": 0
     }
    },
    "mediated_method": "consensus",
-   "minimum_fuel": false
+   "minimum_fuel": true
   },
   {
-   "event_id": "ORD-2015-07-22-1821",
-   "airport": "ORD",
+   "event_id": "ATL-2015-08-23-1304",
+   "airport": "ATL",
    "flights": 7,
    "flight_rules": "VMC",
-   "explored": 1648,
-   "front_size": 68,
+   "explored": 1646,
+   "front_size": 96,
    "safety_violations": 0,
    "methods": {
     "baseline": {
-     "diversions": 0,
-     "total_delay_min": 129,
-     "pax_missed": 98,
-     "min_fuel_margin_min": 6,
-     "gate_changes": 0,
-     "downstream_delay_min": 51,
-     "crew_overtime_min": 0
+     "diversions": 1,
+     "total_delay_min": 170,
+     "pax_missed": 128,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 1,
+     "downstream_delay_min": 361,
+     "crew_overtime_min": 96
     },
     "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 126,
-     "pax_missed": 109,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 3,
-     "downstream_delay_min": 31,
+     "diversions": 1,
+     "total_delay_min": 49,
+     "pax_missed": 74,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 1,
+     "downstream_delay_min": 261,
      "crew_overtime_min": 0
     },
     "mediated": {
-     "diversions": 0,
-     "total_delay_min": 126,
-     "pax_missed": 109,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 3,
-     "downstream_delay_min": 31,
+     "diversions": 1,
+     "total_delay_min": 49,
+     "pax_missed": 74,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 1,
+     "downstream_delay_min": 261,
      "crew_overtime_min": 0
     },
     "vote": {
-     "diversions": 0,
-     "total_delay_min": 126,
-     "pax_missed": 109,
-     "min_fuel_margin_min": 11,
-     "gate_changes": 3,
-     "downstream_delay_min": 31,
+     "diversions": 1,
+     "total_delay_min": 49,
+     "pax_missed": 74,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 1,
+     "downstream_delay_min": 261,
      "crew_overtime_min": 0
     }
    },
    "mediated_method": "consensus",
-   "minimum_fuel": false
+   "minimum_fuel": true
   },
   {
-   "event_id": "ORD-2015-11-29-1821",
-   "airport": "ORD",
+   "event_id": "ATL-2015-08-28-1243",
+   "airport": "ATL",
    "flights": 6,
-   "flight_rules": "VMC",
+   "flight_rules": "IMC",
    "explored": 720,
-   "front_size": 68,
+   "front_size": 60,
    "safety_violations": 0,
    "methods": {
     "baseline": {
-     "diversions": 0,
-     "total_delay_min": 147,
-     "pax_missed": 84,
-     "min_fuel_margin_min": 5,
-     "gate_changes": 0,
-     "downstream_delay_min": 114,
-     "crew_overtime_min": 56
+     "diversions": 1,
+     "total_delay_min": 179,
+     "pax_missed": 134,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 1,
+     "downstream_delay_min": 314,
+     "crew_overtime_min": 84
     },
     "min_delay": {
-     "diversions": 0,
-     "total_delay_min": 92,
-     "pax_missed": 63,
-     "min_fuel_margin_min": 3,
-     "gate_changes": 1,
-     "downstream_delay_min": 58,
-     "crew_overtime_min": 10
+     "diversions": 1,
+     "total_delay_min": 45,
+     "pax_missed": 110,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 0,
+     "downstream_delay_min": 170,
+     "crew_overtime_min": 0
     },
     "mediated": {
-     "diversions": 0,
-     "total_delay_min": 92,
-     "pax_missed": 117,
-     "min_fuel_margin_min": 7,
-     "gate_changes": 3,
-     "downstream_delay_min": 75,
-     "crew_overtime_min": 10
+     "diversions": 1,
+     "total_delay_min": 45,
+     "pax_missed": 67,
+     "min_fuel_margin_min": 0,
+     "gate_changes": 1,
+     "downstream_delay_min": 130,
+     "crew_overtime_min": 0
     },
     "vote": {
-     "diversions": 0,
-     "total_delay_min": 92,
-     "pax_missed": 63,
-     "min_fuel_margin_min": 3,
-     "gate_changes": 1,
-     "downstream_delay_min": 58,
-     "crew_overtime_min": 10
+     "diversions": 1,
+     "total_delay_min": 45,
+     "pax_missed": 110,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 0,
+     "downstream_delay_min": 170,
+     "crew_overtime_min": 0
     }
    },
    "mediated_method": "consensus",
-   "minimum_fuel": false
+   "minimum_fuel": true
   },
   {
-   "event_id": "ORD-2015-12-07-1242",
-   "airport": "ORD",
-   "flights": 6,
-   "flight_rules": "VMC",
-   "explored": 720,
+   "event_id": "CLT-2015-01-24-1004",
+   "airport": "CLT",
+   "flights": 8,
+   "flight_rules": "IMC",
+   "explored": 1960,
    "front_size": 12,
    "safety_violations": 0,
    "methods": {
     "baseline": {
      "diversions": 0,
-     "total_delay_min": 284,
-     "pax_missed": 284,
-     "min_fuel_margin_min": 9,
-     "gate_changes": 0,
-     "downstream_delay_min": 190,
-     "crew_overtime_min": 87
+     "total_delay_min": 48,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 1,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
     },
     "min_delay": {
      "diversions": 0,
-     "total_delay_min": 284,
-     "pax_missed": 284,
-     "min_fuel_margin_min": 12,
-     "gate_changes": 0,
-     "downstream_delay_min": 190,
-     "crew_overtime_min": 87
+     "total_delay_min": 48,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 1,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
     },
     "mediated": {
      "diversions": 0,
-     "total_delay_min": 284,
-     "pax_missed": 284,
-     "min_fuel_margin_min": 15,
-     "gate_changes": 2,
-     "downstream_delay_min": 190,
-     "crew_overtime_min": 87
+     "total_delay_min": 48,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 1,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
     },
     "vote": {
      "diversions": 0,
-     "total_delay_min": 284,
-     "pax_missed": 284,
+     "total_delay_min": 48,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 1,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "CLT-2015-02-24-1702",
+   "airport": "CLT",
+   "flights": 7,
+   "flight_rules": "VMC",
+   "explored": 1656,
+   "front_size": 46,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 130,
+     "pax_missed": 80,
+     "min_fuel_margin_min": 9,
+     "gate_changes": 1,
+     "downstream_delay_min": 84,
+     "crew_overtime_min": 63
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 35,
+     "pax_missed": 34,
+     "min_fuel_margin_min": 9,
+     "gate_changes": 4,
+     "downstream_delay_min": 4,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 35,
+     "pax_missed": 43,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 2,
+     "downstream_delay_min": 1,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 35,
+     "pax_missed": 34,
+     "min_fuel_margin_min": 9,
+     "gate_changes": 4,
+     "downstream_delay_min": 4,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "CLT-2015-03-04-1320",
+   "airport": "CLT",
+   "flights": 6,
+   "flight_rules": "VMC",
+   "explored": 720,
+   "front_size": 8,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 99,
+     "pax_missed": 26,
+     "min_fuel_margin_min": 11,
+     "gate_changes": 1,
+     "downstream_delay_min": 62,
+     "crew_overtime_min": 59
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 27,
+     "pax_missed": 16,
+     "min_fuel_margin_min": 11,
+     "gate_changes": 2,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 27,
+     "pax_missed": 16,
+     "min_fuel_margin_min": 11,
+     "gate_changes": 2,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 27,
+     "pax_missed": 16,
+     "min_fuel_margin_min": 11,
+     "gate_changes": 2,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "CLT-2015-03-06-1521",
+   "airport": "CLT",
+   "flights": 7,
+   "flight_rules": "VMC",
+   "explored": 1660,
+   "front_size": 40,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 66,
+     "pax_missed": 48,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 1,
+     "downstream_delay_min": 12,
+     "crew_overtime_min": 0
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 34,
+     "pax_missed": 43,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 2,
+     "downstream_delay_min": 18,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 34,
+     "pax_missed": 43,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 2,
+     "downstream_delay_min": 18,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 34,
+     "pax_missed": 43,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 2,
+     "downstream_delay_min": 18,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "CLT-2015-05-10-1540",
+   "airport": "CLT",
+   "flights": 6,
+   "flight_rules": "IMC",
+   "explored": 720,
+   "front_size": 6,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 50,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 1,
+     "downstream_delay_min": 100,
+     "crew_overtime_min": 0
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 19,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 11,
+     "gate_changes": 3,
+     "downstream_delay_min": 69,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 19,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 2,
+     "downstream_delay_min": 69,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 23,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 14,
+     "gate_changes": 1,
+     "downstream_delay_min": 66,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "CLT-2015-05-23-1841",
+   "airport": "CLT",
+   "flights": 6,
+   "flight_rules": "IMC",
+   "explored": 795,
+   "front_size": 29,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 50,
+     "pax_missed": 60,
+     "min_fuel_margin_min": 13,
+     "gate_changes": 1,
+     "downstream_delay_min": 10,
+     "crew_overtime_min": 0
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 25,
+     "pax_missed": 8,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 25,
+     "pax_missed": 8,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 25,
+     "pax_missed": 8,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "DEN-2015-06-04-1840",
+   "airport": "DEN",
+   "flights": 6,
+   "flight_rules": "VMC",
+   "explored": 720,
+   "front_size": 60,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 95,
+     "pax_missed": 135,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 1,
+     "downstream_delay_min": 150,
+     "crew_overtime_min": 11
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 55,
+     "pax_missed": 106,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 122,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 55,
+     "pax_missed": 106,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 122,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 55,
+     "pax_missed": 106,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 122,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "DEN-2015-09-11-1741",
+   "airport": "DEN",
+   "flights": 8,
+   "flight_rules": "VMC",
+   "explored": 1961,
+   "front_size": 34,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 75,
+     "pax_missed": 55,
+     "min_fuel_margin_min": 9,
+     "gate_changes": 1,
+     "downstream_delay_min": 119,
+     "crew_overtime_min": 2
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 39,
+     "pax_missed": 64,
+     "min_fuel_margin_min": 9,
+     "gate_changes": 4,
+     "downstream_delay_min": 76,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 47,
+     "pax_missed": 19,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 2,
+     "downstream_delay_min": 84,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 39,
+     "pax_missed": 64,
+     "min_fuel_margin_min": 9,
+     "gate_changes": 4,
+     "downstream_delay_min": 76,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "DFW-2015-01-09-1220",
+   "airport": "DFW",
+   "flights": 7,
+   "flight_rules": "VMC",
+   "explored": 1648,
+   "front_size": 62,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 97,
+     "pax_missed": 74,
+     "min_fuel_margin_min": 2,
+     "gate_changes": 1,
+     "downstream_delay_min": 138,
+     "crew_overtime_min": 13
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 57,
+     "pax_missed": 40,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 2,
+     "downstream_delay_min": 95,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 57,
+     "pax_missed": 40,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 2,
+     "downstream_delay_min": 95,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 57,
+     "pax_missed": 40,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 2,
+     "downstream_delay_min": 95,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "DFW-2015-02-22-1721",
+   "airport": "DFW",
+   "flights": 8,
+   "flight_rules": "VMC",
+   "explored": 1961,
+   "front_size": 43,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 138,
+     "pax_missed": 20,
+     "min_fuel_margin_min": 13,
+     "gate_changes": 1,
+     "downstream_delay_min": 142,
+     "crew_overtime_min": 75
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 33,
+     "pax_missed": 19,
+     "min_fuel_margin_min": 14,
+     "gate_changes": 4,
+     "downstream_delay_min": 139,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 33,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 4,
+     "downstream_delay_min": 133,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 33,
+     "pax_missed": 19,
+     "min_fuel_margin_min": 14,
+     "gate_changes": 4,
+     "downstream_delay_min": 139,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "DFW-2015-03-29-1140",
+   "airport": "DFW",
+   "flights": 8,
+   "flight_rules": "VMC",
+   "explored": 1962,
+   "front_size": 55,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 178,
+     "pax_missed": 49,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 1,
+     "downstream_delay_min": 212,
+     "crew_overtime_min": 90
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 64,
+     "pax_missed": 16,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 3,
+     "downstream_delay_min": 90,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 64,
+     "pax_missed": 16,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 3,
+     "downstream_delay_min": 90,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 64,
+     "pax_missed": 16,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 3,
+     "downstream_delay_min": 90,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "vote_fallback",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "DFW-2015-05-29-1400",
+   "airport": "DFW",
+   "flights": 8,
+   "flight_rules": "VMC",
+   "explored": 1961,
+   "front_size": 33,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 194,
+     "pax_missed": 116,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 1,
+     "downstream_delay_min": 163,
+     "crew_overtime_min": 119
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 67,
+     "pax_missed": 76,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 2,
+     "downstream_delay_min": 28,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 67,
+     "pax_missed": 76,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 2,
+     "downstream_delay_min": 28,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 67,
+     "pax_missed": 76,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 2,
+     "downstream_delay_min": 28,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": true
+  },
+  {
+   "event_id": "DFW-2015-11-01-1405",
+   "airport": "DFW",
+   "flights": 6,
+   "flight_rules": "VMC",
+   "explored": 720,
+   "front_size": 28,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 153,
+     "pax_missed": 110,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 1,
+     "downstream_delay_min": 73,
+     "crew_overtime_min": 80
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 46,
+     "pax_missed": 46,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 2,
+     "downstream_delay_min": 78,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 46,
+     "pax_missed": 46,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 2,
+     "downstream_delay_min": 78,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 46,
+     "pax_missed": 78,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 3,
+     "downstream_delay_min": 73,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "DFW-2015-11-01-1541",
+   "airport": "DFW",
+   "flights": 8,
+   "flight_rules": "VMC",
+   "explored": 1961,
+   "front_size": 58,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 93,
+     "pax_missed": 72,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 1,
+     "downstream_delay_min": 15,
+     "crew_overtime_min": 0
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 61,
+     "pax_missed": 74,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 5,
+     "downstream_delay_min": 11,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 93,
+     "pax_missed": 72,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 1,
+     "downstream_delay_min": 15,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 61,
+     "pax_missed": 74,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 5,
+     "downstream_delay_min": 11,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "DTW-2015-09-30-1641",
+   "airport": "DTW",
+   "flights": 8,
+   "flight_rules": "VMC",
+   "explored": 2114,
+   "front_size": 19,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 70,
+     "pax_missed": 83,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 1,
+     "downstream_delay_min": 46,
+     "crew_overtime_min": 5
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 38,
+     "pax_missed": 51,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 4,
+     "downstream_delay_min": 16,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 38,
+     "pax_missed": 55,
+     "min_fuel_margin_min": 11,
+     "gate_changes": 2,
+     "downstream_delay_min": 8,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 38,
+     "pax_missed": 91,
      "min_fuel_margin_min": 12,
-     "gate_changes": 0,
-     "downstream_delay_min": 190,
-     "crew_overtime_min": 87
+     "gate_changes": 1,
+     "downstream_delay_min": 8,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "DTW-2015-12-14-1841",
+   "airport": "DTW",
+   "flights": 6,
+   "flight_rules": "VMC",
+   "explored": 720,
+   "front_size": 53,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 176,
+     "pax_missed": 109,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 1,
+     "downstream_delay_min": 125,
+     "crew_overtime_min": 66
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 44,
+     "pax_missed": 78,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 1,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 44,
+     "pax_missed": 78,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 1,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 44,
+     "pax_missed": 78,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 1,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "IAH-2015-02-24-1820",
+   "airport": "IAH",
+   "flights": 7,
+   "flight_rules": "IMC",
+   "explored": 1769,
+   "front_size": 37,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 118,
+     "pax_missed": 86,
+     "min_fuel_margin_min": 0,
+     "gate_changes": 1,
+     "downstream_delay_min": 44,
+     "crew_overtime_min": 5
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 88,
+     "pax_missed": 44,
+     "min_fuel_margin_min": 0,
+     "gate_changes": 4,
+     "downstream_delay_min": 4,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 88,
+     "pax_missed": 32,
+     "min_fuel_margin_min": 0,
+     "gate_changes": 4,
+     "downstream_delay_min": 24,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 88,
+     "pax_missed": 44,
+     "min_fuel_margin_min": 0,
+     "gate_changes": 4,
+     "downstream_delay_min": 4,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": true
+  },
+  {
+   "event_id": "IAH-2015-08-03-1820",
+   "airport": "IAH",
+   "flights": 7,
+   "flight_rules": "VMC",
+   "explored": 1646,
+   "front_size": 22,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 31,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 12,
+     "gate_changes": 1,
+     "downstream_delay_min": 10,
+     "crew_overtime_min": 0
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 31,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 12,
+     "gate_changes": 1,
+     "downstream_delay_min": 6,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 31,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 12,
+     "gate_changes": 1,
+     "downstream_delay_min": 6,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 31,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 12,
+     "gate_changes": 1,
+     "downstream_delay_min": 6,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "IAH-2015-09-23-1823",
+   "airport": "IAH",
+   "flights": 7,
+   "flight_rules": "VMC",
+   "explored": 1685,
+   "front_size": 29,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 215,
+     "pax_missed": 92,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 1,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 51
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 50,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 3,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 50,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 3,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 50,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 3,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "IAH-2015-11-17-1640",
+   "airport": "IAH",
+   "flights": 7,
+   "flight_rules": "VMC",
+   "explored": 1684,
+   "front_size": 38,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 190,
+     "pax_missed": 95,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 1,
+     "downstream_delay_min": 109,
+     "crew_overtime_min": 34
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 56,
+     "pax_missed": 81,
+     "min_fuel_margin_min": 9,
+     "gate_changes": 5,
+     "downstream_delay_min": 48,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 56,
+     "pax_missed": 54,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 47,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 56,
+     "pax_missed": 54,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 47,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "IAH-2015-12-14-0901",
+   "airport": "IAH",
+   "flights": 6,
+   "flight_rules": "VMC",
+   "explored": 750,
+   "front_size": 28,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 58,
+     "pax_missed": 33,
+     "min_fuel_margin_min": 3,
+     "gate_changes": 1,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 49,
+     "pax_missed": 33,
+     "min_fuel_margin_min": 0,
+     "gate_changes": 3,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 49,
+     "pax_missed": 20,
+     "min_fuel_margin_min": 0,
+     "gate_changes": 4,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 58,
+     "pax_missed": 33,
+     "min_fuel_margin_min": 4,
+     "gate_changes": 1,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": true
+  },
+  {
+   "event_id": "MIA-2015-02-28-1120",
+   "airport": "MIA",
+   "flights": 6,
+   "flight_rules": "IMC",
+   "explored": 724,
+   "front_size": 8,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 88,
+     "pax_missed": 37,
+     "min_fuel_margin_min": 14,
+     "gate_changes": 1,
+     "downstream_delay_min": 53,
+     "crew_overtime_min": 49
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 8,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 14,
+     "gate_changes": 3,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 10,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 14,
+     "gate_changes": 2,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 41,
+     "pax_missed": 18,
+     "min_fuel_margin_min": 18,
+     "gate_changes": 1,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "MIA-2015-03-20-1540",
+   "airport": "MIA",
+   "flights": 7,
+   "flight_rules": "VMC",
+   "explored": 1771,
+   "front_size": 82,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 70,
+     "pax_missed": 17,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 1,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 38,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 38,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 61,
+     "pax_missed": 17,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 1,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "MSP-2015-01-02-1200",
+   "airport": "MSP",
+   "flights": 7,
+   "flight_rules": "IMC",
+   "explored": 1684,
+   "front_size": 21,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 38,
+     "pax_missed": 36,
+     "min_fuel_margin_min": 19,
+     "gate_changes": 1,
+     "downstream_delay_min": 11,
+     "crew_overtime_min": 0
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 25,
+     "pax_missed": 22,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 4,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 25,
+     "pax_missed": 22,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 4,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 25,
+     "pax_missed": 22,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 4,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "MSP-2015-02-17-1820",
+   "airport": "MSP",
+   "flights": 7,
+   "flight_rules": "VMC",
+   "explored": 1801,
+   "front_size": 33,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 52,
+     "pax_missed": 54,
+     "min_fuel_margin_min": 12,
+     "gate_changes": 1,
+     "downstream_delay_min": 27,
+     "crew_overtime_min": 0
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 41,
+     "pax_missed": 78,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 3,
+     "downstream_delay_min": 5,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 42,
+     "pax_missed": 34,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 3,
+     "downstream_delay_min": 8,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 42,
+     "pax_missed": 52,
+     "min_fuel_margin_min": 11,
+     "gate_changes": 3,
+     "downstream_delay_min": 4,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "MSP-2015-05-13-1801",
+   "airport": "MSP",
+   "flights": 7,
+   "flight_rules": "VMC",
+   "explored": 1692,
+   "front_size": 22,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 120,
+     "pax_missed": 73,
+     "min_fuel_margin_min": 13,
+     "gate_changes": 1,
+     "downstream_delay_min": 68,
+     "crew_overtime_min": 65
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 26,
+     "pax_missed": 18,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 2,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 26,
+     "pax_missed": 18,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 2,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 26,
+     "pax_missed": 18,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 2,
+     "downstream_delay_min": 0,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "MSP-2015-06-18-1221",
+   "airport": "MSP",
+   "flights": 6,
+   "flight_rules": "VMC",
+   "explored": 726,
+   "front_size": 23,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 48,
+     "pax_missed": 29,
+     "min_fuel_margin_min": 16,
+     "gate_changes": 1,
+     "downstream_delay_min": 19,
+     "crew_overtime_min": 11
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 17,
+     "pax_missed": 24,
+     "min_fuel_margin_min": 16,
+     "gate_changes": 2,
+     "downstream_delay_min": 23,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 17,
+     "pax_missed": 24,
+     "min_fuel_margin_min": 13,
+     "gate_changes": 1,
+     "downstream_delay_min": 23,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 17,
+     "pax_missed": 24,
+     "min_fuel_margin_min": 16,
+     "gate_changes": 2,
+     "downstream_delay_min": 23,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "MSP-2015-11-11-1840",
+   "airport": "MSP",
+   "flights": 6,
+   "flight_rules": "VMC",
+   "explored": 790,
+   "front_size": 25,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 83,
+     "pax_missed": 170,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 1,
+     "downstream_delay_min": 21,
+     "crew_overtime_min": 0
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 53,
+     "pax_missed": 100,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 3,
+     "downstream_delay_min": 5,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 53,
+     "pax_missed": 100,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 3,
+     "downstream_delay_min": 5,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 53,
+     "pax_missed": 100,
+     "min_fuel_margin_min": 6,
+     "gate_changes": 3,
+     "downstream_delay_min": 5,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "MSP-2015-12-14-1723",
+   "airport": "MSP",
+   "flights": 8,
+   "flight_rules": "VMC",
+   "explored": 2021,
+   "front_size": 39,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 1,
+     "total_delay_min": 91,
+     "pax_missed": 20,
+     "min_fuel_margin_min": 2,
+     "gate_changes": 1,
+     "downstream_delay_min": 424,
+     "crew_overtime_min": 0
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 83,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 3,
+     "gate_changes": 4,
+     "downstream_delay_min": 332,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 83,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 3,
+     "gate_changes": 4,
+     "downstream_delay_min": 332,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 83,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 3,
+     "gate_changes": 4,
+     "downstream_delay_min": 332,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": true
+  },
+  {
+   "event_id": "ORD-2015-01-07-1446",
+   "airport": "ORD",
+   "flights": 6,
+   "flight_rules": "IMC",
+   "explored": 720,
+   "front_size": 24,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 73,
+     "pax_missed": 32,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 1,
+     "downstream_delay_min": 137,
+     "crew_overtime_min": 16
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 33,
+     "pax_missed": 24,
+     "min_fuel_margin_min": 7,
+     "gate_changes": 1,
+     "downstream_delay_min": 92,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 33,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 2,
+     "downstream_delay_min": 89,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 33,
+     "pax_missed": 0,
+     "min_fuel_margin_min": 10,
+     "gate_changes": 2,
+     "downstream_delay_min": 89,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "ORD-2015-05-10-1821",
+   "airport": "ORD",
+   "flights": 6,
+   "flight_rules": "VMC",
+   "explored": 720,
+   "front_size": 53,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 71,
+     "pax_missed": 131,
+     "min_fuel_margin_min": 0,
+     "gate_changes": 1,
+     "downstream_delay_min": 62,
+     "crew_overtime_min": 0
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 71,
+     "pax_missed": 60,
+     "min_fuel_margin_min": 0,
+     "gate_changes": 1,
+     "downstream_delay_min": 68,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 71,
+     "pax_missed": 102,
+     "min_fuel_margin_min": 2,
+     "gate_changes": 2,
+     "downstream_delay_min": 68,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 71,
+     "pax_missed": 60,
+     "min_fuel_margin_min": 0,
+     "gate_changes": 1,
+     "downstream_delay_min": 68,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": true
+  },
+  {
+   "event_id": "ORD-2015-06-01-1620",
+   "airport": "ORD",
+   "flights": 6,
+   "flight_rules": "VMC",
+   "explored": 720,
+   "front_size": 26,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 185,
+     "pax_missed": 197,
+     "min_fuel_margin_min": 0,
+     "gate_changes": 1,
+     "downstream_delay_min": 125,
+     "crew_overtime_min": 77
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 68,
+     "pax_missed": 118,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 2,
+     "downstream_delay_min": 16,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 68,
+     "pax_missed": 118,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 2,
+     "downstream_delay_min": 16,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 68,
+     "pax_missed": 118,
+     "min_fuel_margin_min": 1,
+     "gate_changes": 2,
+     "downstream_delay_min": 16,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": true
+  },
+  {
+   "event_id": "ORD-2015-06-11-1301",
+   "airport": "ORD",
+   "flights": 6,
+   "flight_rules": "VMC",
+   "explored": 738,
+   "front_size": 23,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 68,
+     "pax_missed": 91,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 1,
+     "downstream_delay_min": 57,
+     "crew_overtime_min": 10
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 44,
+     "pax_missed": 44,
+     "min_fuel_margin_min": 5,
+     "gate_changes": 3,
+     "downstream_delay_min": 63,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 44,
+     "pax_missed": 44,
+     "min_fuel_margin_min": 5,
+     "gate_changes": 3,
+     "downstream_delay_min": 63,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 44,
+     "pax_missed": 57,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 3,
+     "downstream_delay_min": 63,
+     "crew_overtime_min": 0
+    }
+   },
+   "mediated_method": "consensus",
+   "minimum_fuel": false
+  },
+  {
+   "event_id": "ORD-2015-07-13-1243",
+   "airport": "ORD",
+   "flights": 6,
+   "flight_rules": "VMC",
+   "explored": 722,
+   "front_size": 24,
+   "safety_violations": 0,
+   "methods": {
+    "baseline": {
+     "diversions": 0,
+     "total_delay_min": 76,
+     "pax_missed": 113,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 1,
+     "downstream_delay_min": 58,
+     "crew_overtime_min": 8
+    },
+    "min_delay": {
+     "diversions": 0,
+     "total_delay_min": 37,
+     "pax_missed": 45,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 3,
+     "downstream_delay_min": 58,
+     "crew_overtime_min": 0
+    },
+    "mediated": {
+     "diversions": 0,
+     "total_delay_min": 37,
+     "pax_missed": 45,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 3,
+     "downstream_delay_min": 58,
+     "crew_overtime_min": 0
+    },
+    "vote": {
+     "diversions": 0,
+     "total_delay_min": 37,
+     "pax_missed": 45,
+     "min_fuel_margin_min": 8,
+     "gate_changes": 3,
+     "downstream_delay_min": 58,
+     "crew_overtime_min": 0
     }
    },
    "mediated_method": "consensus",
@@ -2051,7 +2051,91 @@
  ],
  "llm_runs": [
   {
-   "event_id": "CLT-2015-03-01-1503",
+   "event_id": "ATL-2015-08-28-1243",
+   "intake_matches_truth": {
+    "runway_closure": true,
+    "gates_out": true,
+    "flight_rules": true
+   },
+   "intake_warnings": [],
+   "fallbacks": [],
+   "winner": "D",
+   "proxy_winner": "A",
+   "metrics": {
+    "diversions": 1,
+    "total_delay_min": 45,
+    "pax_missed": 85,
+    "min_fuel_margin_min": 0,
+    "gate_changes": 1,
+    "downstream_delay_min": 125,
+    "crew_overtime_min": 0
+   },
+   "vetoes": {
+    "C": 1
+   },
+   "api_calls": 8,
+   "input_tokens": 25197,
+   "output_tokens": 2685,
+   "wall_clock_seconds": 20.2
+  },
+  {
+   "event_id": "MSP-2015-01-02-1200",
+   "intake_matches_truth": {
+    "runway_closure": true,
+    "gates_out": true,
+    "flight_rules": true
+   },
+   "intake_warnings": [],
+   "fallbacks": [],
+   "winner": "B",
+   "proxy_winner": "A",
+   "metrics": {
+    "diversions": 0,
+    "total_delay_min": 25,
+    "pax_missed": 22,
+    "min_fuel_margin_min": 7,
+    "gate_changes": 3,
+    "downstream_delay_min": 0,
+    "crew_overtime_min": 0
+   },
+   "vetoes": {
+    "D": 3
+   },
+   "api_calls": 8,
+   "input_tokens": 27059,
+   "output_tokens": 2663,
+   "wall_clock_seconds": 19.9
+  },
+  {
+   "event_id": "ORD-2015-06-11-1301",
+   "intake_matches_truth": {
+    "runway_closure": true,
+    "gates_out": true,
+    "flight_rules": true
+   },
+   "intake_warnings": [],
+   "fallbacks": [],
+   "winner": "A",
+   "proxy_winner": "E",
+   "metrics": {
+    "diversions": 0,
+    "total_delay_min": 44,
+    "pax_missed": 44,
+    "min_fuel_margin_min": 5,
+    "gate_changes": 3,
+    "downstream_delay_min": 63,
+    "crew_overtime_min": 0
+   },
+   "vetoes": {
+    "C": 1
+   },
+   "api_calls": 8,
+   "input_tokens": 28332,
+   "output_tokens": 2280,
+   "wall_clock_seconds": 16.8
+  },
+  {
+   "event_id": "ATL-2015-03-03-1724",
    "intake_matches_truth": {
     "runway_closure": true,
     "gates_out": true,
@@ -2063,23 +2147,23 @@
    "proxy_winner": "C",
    "metrics": {
     "diversions": 0,
-    "total_delay_min": 167,
-    "pax_missed": 133,
-    "min_fuel_margin_min": 6,
-    "gate_changes": 2,
-    "downstream_delay_min": 44,
-    "crew_overtime_min": 31
+    "total_delay_min": 53,
+    "pax_missed": 0,
+    "min_fuel_margin_min": 1,
+    "gate_changes": 3,
+    "downstream_delay_min": 19,
+    "crew_overtime_min": 0
    },
    "vetoes": {
     "B": 2
    },
    "api_calls": 8,
-   "input_tokens": 23316,
-   "output_tokens": 2598,
-   "wall_clock_seconds": 19.7
+   "input_tokens": 22000,
+   "output_tokens": 2304,
+   "wall_clock_seconds": 15.7
   },
   {
-   "event_id": "DFW-2015-08-01-1740",
+   "event_id": "ATL-2015-03-20-1700",
    "intake_matches_truth": {
     "runway_closure": true,
     "gates_out": true,
@@ -2088,53 +2172,24 @@
    "intake_warnings": [],
    "fallbacks": [],
    "winner": "A",
-   "proxy_winner": "A",
+   "proxy_winner": "B",
    "metrics": {
-    "diversions": 0,
-    "total_delay_min": 210,
-    "pax_missed": 142,
-    "min_fuel_margin_min": 2,
-    "gate_changes": 3,
-    "downstream_delay_min": 152,
-    "crew_overtime_min": 16
+    "diversions": 1,
+    "total_delay_min": 44,
+    "pax_missed": 33,
+    "min_fuel_margin_min": 3,
+    "gate_changes": 1,
+    "downstream_delay_min": 297,
+    "crew_overtime_min": 0
    },
    "vetoes": {},
    "api_calls": 8,
-   "input_tokens": 22793,
-   "output_tokens": 2124,
-   "wall_clock_seconds": 16.0
+   "input_tokens": 23429,
+   "output_tokens": 2083,
+   "wall_clock_seconds": 15.6
   },
   {
-   "event_id": "ORD-2015-03-01-1705",
-   "intake_matches_truth": {
-    "runway_closure": true,
-    "gates_out": true,
-    "flight_rules": true
-   },
-   "intake_warnings": [],
-   "fallbacks": [],
-   "winner": "E",
-   "proxy_winner": "E",
-   "metrics": {
-    "diversions": 0,
-    "total_delay_min": 185,
-    "pax_missed": 172,
-    "min_fuel_margin_min": 5,
-    "gate_changes": 1,
-    "downstream_delay_min": 123,
-    "crew_overtime_min": 34
-   },
-   "vetoes": {
-    "B": 1,
-    "D": 1
-   },
-   "api_calls": 8,
-   "input_tokens": 29998,
-   "output_tokens": 2292,
-   "wall_clock_seconds": 16.5
-  },
-  {
-   "event_id": "ATL-2015-01-03-0900",
+   "event_id": "ATL-2015-07-18-1442",
    "intake_matches_truth": {
     "runway_closure": true,
     "gates_out": true,
@@ -2145,74 +2200,20 @@
    "winner": "A",
    "proxy_winner": "A",
    "metrics": {
-    "diversions": 0,
-    "total_delay_min": 340,
-    "pax_missed": 129,
-    "min_fuel_margin_min": 8,
-    "gate_changes": 3,
-    "downstream_delay_min": 254,
-    "crew_overtime_min": 51
-   },
-   "vetoes": {
-    "B": 2
-   },
-   "api_calls": 8,
-   "input_tokens": 23033,
-   "output_tokens": 2350,
-   "wall_clock_seconds": 17.8
-  },
-  {
-   "event_id": "ATL-2015-01-03-1600",
-   "intake_matches_truth": {
-    "runway_closure": true,
-    "gates_out": true,
-    "flight_rules": true
-   },
-   "intake_warnings": [],
-   "fallbacks": [],
-   "winner": "C",
-   "proxy_winner": "A",
-   "metrics": {
-    "diversions": 0,
-    "total_delay_min": 227,
-    "pax_missed": 81,
-    "min_fuel_margin_min": 7,
-    "gate_changes": 2,
-    "downstream_delay_min": 246,
-    "crew_overtime_min": 35
+    "diversions": 2,
+    "total_delay_min": 29,
+    "pax_missed": 69,
+    "min_fuel_margin_min": 3,
+    "gate_changes": 1,
+    "downstream_delay_min": 284,
+    "crew_overtime_min": 0
    },
    "vetoes": {
     "B": 1
    },
    "api_calls": 8,
-   "input_tokens": 26700,
-   "output_tokens": 2346,
-   "wall_clock_seconds": 19.1
-  },
-  {
-   "event_id": "ATL-2015-02-26-1005",
-   "intake_matches_truth": {
-    "runway_closure": true,
-    "gates_out": true,
-    "flight_rules": true
-   },
-   "intake_warnings": [],
-   "fallbacks": [],
-   "winner": "A",
-   "proxy_winner": "C",
-   "metrics": {
-    "diversions": 0,
-    "total_delay_min": 240,
-    "pax_missed": 90,
-    "min_fuel_margin_min": 7,
-    "gate_changes": 0,
-    "downstream_delay_min": 249,
-    "crew_overtime_min": 34
-   },
-   "vetoes": {},
-   "api_calls": 8,
-   "input_tokens": 28378,
-   "output_tokens": 2167,
+   "input_tokens": 24406,
+   "output_tokens": 2342,
    "wall_clock_seconds": 16.0
   }
  ]

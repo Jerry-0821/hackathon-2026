@@ -1,0 +1,143 @@
+{
+ "note": "Extract of the organisers' challenge constraints workbook (synthetic planning limits). Only the values this app uses. Regenerate with `python workbook.py`.",
+ "airports_in_workbook": 322,
+ "airports": {
+  "ATL": {
+   "name": "Hartsfield-Jackson Atlanta International Airport",
+   "size_class": "Large hub",
+   "active_runways": 4,
+   "gates": 150,
+   "max_runway_ops_per_hour": 90,
+   "min_turnaround_min": 45,
+   "spare_gates": 3
+  },
+  "CLT": {
+   "name": "Charlotte Douglas International Airport",
+   "size_class": "Medium hub",
+   "active_runways": 3,
+   "gates": 70,
+   "max_runway_ops_per_hour": 60,
+   "min_turnaround_min": 35,
+   "spare_gates": 3
+  },
+  "DEN": {
+   "name": "Denver International Airport",
+   "size_class": "Large hub",
+   "active_runways": 4,
+   "gates": 150,
+   "max_runway_ops_per_hour": 90,
+   "min_turnaround_min": 45,
+   "spare_gates": 3
+  },
+  "DFW": {
+   "name": "Dallas/Fort Worth International Airport",
+   "size_class": "Large hub",
+   "active_runways": 4,
+   "gates": 150,
+   "max_runway_ops_per_hour": 90,
+   "min_turnaround_min": 45,
+   "spare_gates": 3
+  },
+  "DTW": {
+   "name": "Detroit Metropolitan Airport",
+   "size_class": "Medium hub",
+   "active_runways": 3,
+   "gates": 70,
+   "max_runway_ops_per_hour": 60,
+   "min_turnaround_min": 35,
+   "spare_gates": 3
+  },
+  "IAH": {
+   "name": "George Bush Intercontinental Airport",
+   "size_class": "Medium hub",
+   "active_runways": 3,
+   "gates": 70,
+   "max_runway_ops_per_hour": 60,
+   "min_turnaround_min": 35,
+   "spare_gates": 3
+  },
+  "MIA": {
+   "name": "Miami International Airport",
+   "size_class": "Medium hub",
+   "active_runways": 3,
+   "gates": 70,
+   "max_runway_ops_per_hour": 60,
+   "min_turnaround_min": 35,
+   "spare_gates": 3
+  },
+  "MSP": {
+   "name": "Minneapolis-Saint Paul International Airport",
+   "size_class": "Medium hub",
+   "active_runways": 3,
+   "gates": 70,
+   "max_runway_ops_per_hour": 60,
+   "min_turnaround_min": 35,
+   "spare_gates": 3
+  },
+  "ORD": {
+   "name": "Chicago O'Hare International Airport",
+   "size_class": "Large hub",
+   "active_runways": 4,
+   "gates": 150,
+   "max_runway_ops_per_hour": 90,
+   "min_turnaround_min": 45,
+   "spare_gates": 3
+  }
+ },
+ "wake_nm": [
+  [
+   "Super",
+   "Heavy",
+   6.0
+  ],
+  [
+   "Super",
+   "Large",
+   7.0
+  ],
+  [
+   "Super",
+   "Small",
+   8.0
+  ],
+  [
+   "Heavy",
+   "Heavy",
+   4.0
+  ],
+  [
+   "Heavy",
+   "Large",
+   5.0
+  ],
+  [
+   "Heavy",
+   "Small",
+   6.0
+  ],
+  [
+   "Large",
+   "Small",
+   4.0
+  ]
+ ],
+ "wake_default_nm": 3.0,
+ "fuel_crew": {
+  "final_reserve_min": 30.0,
+  "contingency_pct": 5.0,
+  "burn_narrow_kg_h": 2400.0,
+  "burn_wide_kg_h": 6500.0,
+  "spare_fuel_on_arrival_min": 45.0,
+  "flight_crew_max_duty_h": 13.0,
+  "ground_shift_h": 8.0,
+  "overtime_rate": 1.5,
+  "gate_change_notice_min": 20.0
+ },
+ "rules_of_play": {
+  "Input": "Pick one row of flights.csv (WEATHER_DELAY > 15 or LATE_AIRCRAFT_DELAY > 20). That row is the disruption.",
+  "Turn": "One turn = each of the three agents sends one structured message. Consensus must be reached within 3 turns.",
+  "No consensus": "After 3 turns without agreement, the deterministic non-AI fallback decides. Log why.",
+  "Constraints": "Use the limits in this workbook. Any limit you change must be stated in your demo.",
+  "Output": "A revised arrival time, gate, or flight plan, with a consensus log showing each turn."
+ }
+}

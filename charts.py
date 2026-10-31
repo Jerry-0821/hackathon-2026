@@ -10,7 +10,6 @@ from __future__ import annotations
 import altair as alt
 import pandas as pd
 
-import reference_data as ref
 
 BLUE, ORANGE, AQUA = "#2a78d6", "#eb6834", "#1baf7a"
 GRAY, INK, MUTED = "#c9c8c2", "#0b0b0b", "#52514e"
@@ -52,7 +51,7 @@ def plan_cloud(cloud: list[dict], options: list[dict], baseline: dict, winner_id
     return (background + points + labels).properties(height=360)
 
 
-def timeline(plan: dict, flights: list[dict], closures: list[tuple[int, int]]) -> alt.Chart:
+def timeline(plan: dict, flights: list[dict], closures: list[tuple[int, int]], turnaround_min: int) -> alt.Chart:
     """One row per flight: holding (ETA to landing), taxi, then time at the gate."""
     by_id = {f["id"]: f for f in flights}
     rows = []
@@ -70,7 +69,7 @@ def timeline(plan: dict, flights: list[dict], closures: list[tuple[int, int]]) -
                          "end": _t(r["landing_min"]), "note": f"{r['holding_min']} min hold"})
         rows.append({"flight": label, "phase": "Taxi / gate wait", "start": _t(r["landing_min"]),
                      "end": _t(r["gate_at_min"]), "note": f"lands {r['landing']}"})
-        turn = ref.TURNAROUND_MIN[f["widebody"]]
+        turn = turnaround_min
         rows.append({"flight": label, "phase": "At gate", "start": _t(r["gate_at_min"]),
                      "end": _t(r["gate_at_min"] + turn),
                      "note": f"gate {r['gate']}" + (" (changed)" if r["gate_changed"] else "")})

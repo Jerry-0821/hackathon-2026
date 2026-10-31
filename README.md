@@ -10,7 +10,7 @@ between Claude and code:
 | Step | Who | What |
 |---|---|---|
 | 1. Read the messages | Claude | Turns a raw NOTAM, METAR and free-text ops note into structured facts. Code then checks every fact against the airport data and converts UTC to local time. |
-| 2. Generate options | Code (`solver.py`) | Simulates ~1,650 landing orders and gate plans. Keeps only safe ones (runway rate, wake separation, final reserve fuel, gate availability). Finds the Pareto front and picks 3-5 representative options. |
+| 2. Generate options | Code (`solver.py`) | Simulates ~1,650 landing orders and gate plans. Keeps only safe ones: runway capacity left after the closure (shared with the real traffic that hour), FAA wake separation, final reserve fuel, open and free gates, 20 min gate-change notice. Finds the Pareto front and picks 3-5 representative options. |
 | 3. Negotiate | Claude x3 | ATC, Flight Crew and Ground Ops, each seeing only its own organisation's data. **Mediated (default):** turn 1 declares priorities, positions and optional own plans; a mediator (code) recommends the option where the worst-off agent does best; turn 2 is accept or object. **Vote:** two ranking rounds, with vetoes. |
 | 4. Decide | Code (`negotiate_mediated.py`, `negotiate.py`) | Mediated: consensus if all three accept, else the best option all three called acceptable, else Borda + veto. Vote: Borda count, vetoes remove an option, ties go to the most balanced option. |
 | 5. Brief | Claude | Writes a plain-English decision brief from code-computed comparisons. |
@@ -18,10 +18,16 @@ between Claude and code:
 Every LLM step has a deterministic fallback, so the demo always reaches a safe decision.
 
 **Data.** 40 real disrupted arrival banks at 9 US hubs from the 2015 DOT dataset (flights, times,
-delays, tail numbers, each aircraft's next departure, onward connections). Fields the dataset lacks
-(aircraft type, wake category, fuel, gate IDs, passenger counts, the closure and weather messages)
-are synthetic, derived deterministically from reference tables in `reference_data.py`, and
-labelled in the UI.
+delays, tail numbers, each aircraft's next departure, onward connections, and the real traffic at the
+airport that hour). Every event contains a row that meets the rules of play (WEATHER_DELAY > 15 or
+LATE_AIRCRAFT_DELAY > 20). Aircraft type, gate IDs, passenger counts, the closure and the messages
+are synthetic, derived deterministically, and labelled in the UI.
+
+**Constraints.** All operational limits come from the challenge workbook,
+`reference/challenge-2-operational-constraints.xlsx`, read by `workbook.py`: runway capacity,
+gates, spare gates, turnaround, wake separation, fuel and crew rules. Every change or assumption
+we made is listed in `workbook.STATED_CHANGES` and on the app's **Constraints** page, as the rules
+of play require. Replace the workbook file and rebuild (`python build_cascades.py`) to use new limits.
 
 **Evaluation.** `evaluate.py` runs all 40 events (278 flights) with deterministic stand-in agents and
 compares both agent processes with a no-coordination baseline and a single-objective optimiser.
@@ -44,7 +50,9 @@ Its design spec: [`.plans/atc-multiagent-negotiation-spec.md`](.plans/atc-multia
 | `solver.py` | Deterministic plan generator, Pareto front, independent safety check |
 | `negotiate.py` | Vote process and shared pipeline pieces |
 | `charts.py` | Altair charts |
-| `reference_data.py` | Aircraft, wake, airport and ops reference tables |
+| `workbook.py`, `reference/` | The challenge constraints workbook and the code that reads it; the stated changes |
+| `views/operational_constraints.py` | Constraints page: every workbook limit used and every change we made |
+| `reference_data.py` | Aircraft types, fleets, airport runway names and time zones (not limits) |
 | `build_cascades.py` | Builds `events/cascades.json` from `data/flights.csv` (run once) |
 | `evaluate.py` | Evaluation harness, writes `events/evaluation_results.json` |
 | `events/` | Committed event and evaluation data, so the app runs without the raw dataset |
