@@ -4,26 +4,51 @@ Python + Streamlit + Claude API.
 
 "How might AI help air traffic controllers, pilots and ground operations staff make faster and better decisions?"
 
-Three independent Claude agents — **ATC**, **Pilot**, and **Ground Ops** — negotiate a revised
-arrival time and gate assignment for one real disrupted flight (AA 1057, DFW → MIA, from the
-2015 DOT flight delays dataset). Each agent is a separate API call with its own objectives; a
-deterministic (non-AI) constraint validator vetoes any proposal that breaks safety/ops limits;
-negotiation is capped at 3 turns, after which a deterministic rule-based fallback picks a safe
-outcome. Full design spec: [`.plans/atc-multiagent-negotiation-spec.md`](.plans/atc-multiagent-negotiation-spec.md).
+A runway closes and a bank of 6-8 real arrivals has to be re-planned. The demo splits the work
+between Claude and code:
+
+| Step | Who | What |
+|---|---|---|
+| 1. Read the messages | Claude | Turns a raw NOTAM, METAR and free-text ops note into structured facts. Code then checks every fact against the airport data and converts UTC to local time. |
+| 2. Generate options | Code (`solver.py`) | Simulates ~1,650 landing orders and gate plans. Keeps only safe ones (runway rate, wake separation, final reserve fuel, gate availability). Finds the Pareto front and picks 3-5 representative options. |
+| 3. Rank and argue | Claude x3 | ATC, Flight Crew and Ground Ops each rank the options from their own side, then see each other's positions and reply in a second round. They can veto. |
+| 4. Decide | Code (`negotiate.py`) | Fixed voting rule: Borda count, vetoes remove an option, ties go to the most balanced option. |
+| 5. Brief | Claude | Writes a plain-English decision brief from code-computed comparisons. |
+
+Every LLM step has a deterministic fallback, so the demo always reaches a safe decision.
+
+**Data.** 40 real disrupted arrival banks at 9 US hubs from the 2015 DOT dataset (flights, times,
+delays, tail numbers, each aircraft's next departure, onward connections). Fields the dataset lacks
+(aircraft type, wake category, fuel, gate IDs, passenger counts, the closure and weather messages)
+are synthetic, derived deterministically from reference tables in `reference_data.py`, and
+labelled in the UI.
+
+**Evaluation.** `evaluate.py` runs all 40 events (278 flights) and compares the negotiated outcome
+with a no-coordination baseline and a single-objective optimiser. See the Evaluation page.
+
+The original single-flight negotiation (v1) is still available as its own page.
+Its design spec: [`.plans/atc-multiagent-negotiation-spec.md`](.plans/atc-multiagent-negotiation-spec.md).
 
 ## Files
 
 | File | What it does |
 |---|---|
-| `app.py` | Web UI (Streamlit) — runs the negotiation live and renders it turn by turn |
-| `scenario.py` | The fixed demo flight + derived fuel/gate/crew fields |
-| `agents.py` | The 3 independent Claude calls (ATC / Pilot / Ground), one structured JSON response each |
-| `constraints.py` | Deterministic, non-AI safety/ops validator (wake separation, fuel reserve, crew overtime, gate conflicts) |
-| `mediator.py` | Deterministic, non-AI consensus gate (no LLM call) |
-| `fallback.py` | Deterministic rule-based outcome if no consensus within 3 turns |
-| `orchestrator.py` | The turn loop (ATC → Pilot → Ground, capped at 3 turns), writes `consensus_log.json` |
-| `log_render.py` | Renders the JSON consensus log as a static HTML timeline |
+| `app.py` | Streamlit entry point (page router) |
+| `views/cascade.py` | Main demo page: runway closure cascade |
+| `views/evaluation.py` | Evaluation results page |
+| `views/single_flight.py` | v1 single-flight negotiation page |
+| `ai.py` | All Claude calls for the cascade: intake, agent rankings, decision brief |
+| `solver.py` | Deterministic plan generator, Pareto front, independent safety check |
+| `negotiate.py` | Cascade pipeline and the voting rule |
+| `charts.py` | Altair charts |
+| `reference_data.py` | Aircraft, wake, airport and ops reference tables |
+| `build_cascades.py` | Builds `events/cascades.json` from `data/flights.csv` (run once) |
+| `evaluate.py` | Evaluation harness, writes `events/evaluation_results.json` |
+| `events/` | Committed event and evaluation data, so the app runs without the raw dataset |
+| `agents.py`, `orchestrator.py`, `constraints.py`, `mediator.py`, `fallback.py`, `scenario.py`, `log_render.py` | v1 single-flight negotiation |
+| `benchmark.py` | v1 benchmark |
 | `test_api.py` | Checks that your API key works |
+| `tests/` | Offline unit tests (`python -m pytest`) |
 | `setup.ps1` | One-click first-time setup |
 | `.env` | Your API key (**never uploaded to GitHub**, everyone creates their own) |
 | `CLAUDE.md` | Team rules that Claude reads automatically |
@@ -53,7 +78,7 @@ python -m pytest        # offline unit tests, no API calls
 streamlit run app.py    # open the web app
 ```
 
-Click "Run negotiation" in the browser to watch the 3 agents negotiate live. Save your code, then click **Rerun** at the top right of the web page to see changes.
+Pick a ★ event and click **Run**. Try editing the ops note first, e.g. close a second gate. Save your code, then click **Rerun** at the top right of the web page to see changes.
 
 ## Working together
 
@@ -61,6 +86,14 @@ Click "Run negotiation" in the browser to watch the 3 agents negotiate live. Sav
 - See `CLAUDE.md` for the Ownership split once it's filled in.
 - Send the API key by private message. **Never put it in code.**
 
+## Rebuilding the data (optional)
+
+```powershell
+python build_cascades.py      # needs data/flights.csv (DOT 2015, not in git) - about 1 minute
+python evaluate.py            # deterministic evaluation, no API cost - about 1 minute
+python evaluate.py --agents 6 # also run the Claude pipeline on 6 events
+```
+
 ## Changing the model
 
-`MODEL` in `agents.py` is currently `claude-haiku-4-5-20251001` (fast/cheap, good for iterating on the negotiation logic). Swap to a Sonnet/Opus model there for higher-quality agent reasoning if time allows.
+`MODEL` in `agents.py` is currently `claude-haiku-4-5-20251001` (fast/cheap). `ai.py` uses the same model. A stronger model should reason better about the numbers. Note: Claude Opus 5.5, Sonnet 5.5 and Fable 5.1 reject the forced `tool_choice` these files use, so switching to them needs `tool_choice: auto` plus `strict: true` tools. Run `python -m pytest` and one live run after any switch.
