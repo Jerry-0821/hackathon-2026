@@ -2071,12 +2071,12 @@
     "crew_overtime_min": 31
    },
    "vetoes": {
-    "B": 2
+    "B": 3
    },
    "api_calls": 8,
-   "input_tokens": 23316,
-   "output_tokens": 2598,
-   "wall_clock_seconds": 19.7
+   "input_tokens": 23391,
+   "output_tokens": 2489,
+   "wall_clock_seconds": 17.3
   },
   {
    "event_id": "DFW-2015-08-01-1740",
@@ -2098,11 +2098,13 @@
     "downstream_delay_min": 152,
     "crew_overtime_min": 16
    },
-   "vetoes": {},
+   "vetoes": {
+    "C": 2
+   },
    "api_calls": 8,
-   "input_tokens": 22793,
-   "output_tokens": 2124,
-   "wall_clock_seconds": 16.0
+   "input_tokens": 23241,
+   "output_tokens": 2496,
+   "wall_clock_seconds": 17.9
   },
   {
    "event_id": "ORD-2015-03-01-1705",
@@ -2125,13 +2127,12 @@
     "crew_overtime_min": 34
    },
    "vetoes": {
-    "B": 1,
-    "D": 1
+    "B": 2
    },
    "api_calls": 8,
-   "input_tokens": 29998,
-   "output_tokens": 2292,
-   "wall_clock_seconds": 16.5
+   "input_tokens": 30199,
+   "output_tokens": 2355,
+   "wall_clock_seconds": 17.6
   },
   {
    "event_id": "ATL-2015-01-03-0900",
@@ -2154,12 +2155,13 @@
     "crew_overtime_min": 51
    },
    "vetoes": {
-    "B": 2
+    "B": 2,
+    "C": 1
    },
    "api_calls": 8,
-   "input_tokens": 23033,
-   "output_tokens": 2350,
-   "wall_clock_seconds": 17.8
+   "input_tokens": 23184,
+   "output_tokens": 2465,
+   "wall_clock_seconds": 17.5
   },
   {
    "event_id": "ATL-2015-01-03-1600",
@@ -2182,12 +2184,12 @@
     "crew_overtime_min": 35
    },
    "vetoes": {
-    "B": 1
+    "D": 1
    },
    "api_calls": 8,
-   "input_tokens": 26700,
-   "output_tokens": 2346,
-   "wall_clock_seconds": 19.1
+   "input_tokens": 26577,
+   "output_tokens": 2175,
+   "wall_clock_seconds": 16.6
   },
   {
    "event_id": "ATL-2015-02-26-1005",
@@ -2209,11 +2211,13 @@
     "downstream_delay_min": 249,
     "crew_overtime_min": 34
    },
-   "vetoes": {},
+   "vetoes": {
+    "C": 1
+   },
    "api_calls": 8,
-   "input_tokens": 28378,
-   "output_tokens": 2167,
-   "wall_clock_seconds": 16.0
+   "input_tokens": 28480,
+   "output_tokens": 2185,
+   "wall_clock_seconds": 15.0
   }
  ]
 }
